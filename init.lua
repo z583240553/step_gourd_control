@@ -17,6 +17,7 @@ local cmds = {
   [4] = "device_address"
 }
 --  "cranetype",             --起重机类型
+--[[
 -----------------------------------起升页面json--------------------------------------
 local main_state = {
   [1] = "main_state",             --主钩的机构状态
@@ -78,6 +79,8 @@ local vice_state = {
   [27] = "vice_warn",              --副钩的预警值
   [28] = "vice_alarm",             --副钩的报警值
 }
+]]
+--[[
 -----------------------------------小车页面json--------------------------------------
 local small1_state = {
   [1] = "small1_state",             --小车1的机构状态
@@ -135,6 +138,8 @@ local small2_state = {
   [25] = "small2_outpower",         --小车2的输出功率
   [26] = "small2_temp",             --小车2的散热器温度
 }
+]]
+--[[
 -----------------------------------大车页面json--------------------------------------
 local large_state = {
   [1] = "large_state",             --大车的机构状态
@@ -164,6 +169,7 @@ local large_state = {
   [25] = "large_outpower",         --大车的输出功率
   [26] = "large_temp",             --大车的散热器温度
 }
+]]
 -----------------------------------控制器页面json--------------------------------------
 for j=1,10,1 do
   ctrl_state[i] = "ctrl_x0"..(i-1)  --X00、、X09
@@ -205,6 +211,7 @@ local ctrl_state ={
   [62] = "ctrl_warn",             --称重预警值
   [63] = "ctrl_alarm",            --称重报警值
 }
+--[[
 -----------------------------------起重主监控页面json--------------------------------------
 local crane_state = {
   [1] = "crn_l_rundis",             --大车状态-运行方向
@@ -296,7 +303,7 @@ end
 for j=1,4,1 do
   crane_state[92+i] = "crn_"..i.."_largerev"  --i档大车反转
 end
-
+]]
 
 local num = 1
 local parameter_cmds = {}
@@ -325,7 +332,6 @@ local faultcmds = {
     [4] = "current",
     [5] = "code",
 }
-
 for i=0,7,1 do
   for j=1,5,1 do
     fault_cmds[i*5+j] = "fault"..i.."_"..faultcmds[j] 
@@ -364,568 +370,95 @@ function _M.decode(payload)
     local head2 = getnumber(2)
 
     if ( head1 == 0x3B and head2 == 0x31 ) then 
+         packet['test1'] = 'head ok'
       
-      local templen = bit.lshift( getnumber(3) , 8 ) + getnumber(4) --收到的数据长度
-      --templen will be the important parameter in the next calculate
-      --in different task some number mabey be changed 
-      --to avoid unnecessary problem
-      --packet[ cmds[0] ] = templen
-      packet[ cmds[1] ] = bit.lshift( getnumber(5) , 8 ) + bit.lshift( getnumber(6) , 16 ) + bit.lshift( getnumber(7) , 8 ) + getnumber(8)
+        local templen = bit.lshift( getnumber(3) , 8 ) + getnumber(4) --收到的数据长度
+        --templen will be the important parameter in the next calculate
+        --in different task some number mabey be changed 
+        --to avoid unnecessary problem
+        --packet[ cmds[0] ] = templen
+        packet[ cmds[1] ] = bit.lshift( getnumber(5) , 8 ) + bit.lshift( getnumber(6) , 16 ) + bit.lshift( getnumber(7) , 8 ) + getnumber(8)
 
-      --local mode = getnumber(9)
-      --if mode == 1 then
-          --packet[ cmds[2] ] = 'Mode-485'
-        --else
-          --packet[ cmds[2] ] = 'Mode-232'
-      --end
+        --local mode = getnumber(9)
+        --if mode == 1 then
+            --packet[ cmds[2] ] = 'Mode-485'
+          --else
+            --packet[ cmds[2] ] = 'Mode-232'
+        --end
 
-      local func = getnumber(10)  --数据类型功能码
-      -------------------起升数据（有无副钩数据由起重机机构来判断）----------------------
-      if func == 0x02 then
-          packet[ cmds[3] ] = 'func-lifting'
-          FCS_Value = bit.lshift( getnumber(templen+5) , 8 ) + getnumber(templen+6)
-      
-          packet["cranetype"] = bit.lshift( getnumber(12) , 8 ) + getnumber(13)  --起重机类型
-          local cranetype = bit.lshift( getnumber(12) , 8 ) + getnumber(13)      --0：3机构:1：4机构:2：5机构
-          
-          for i=1,3,1 do  
-          	  packet[main_state[i]] =  bit.lshift( getnumber(12+i*2) , 8 ) + getnumber(13+i*2) --状态、故障、控制方式   
-          end
-          --解析主起升数字量输入 bit0 1 2 4 5 13对应正转反转高速 正转限位反转限位抱闸状态
-          local m = bit.band(getnumber(21),bit.lshift(1,0)) --主钩-运行方向
-          if m~=0 then
-            packet[main_state[4]] = 1
-          end
-          local m = bit.band(getnumber(21),bit.lshift(1,1))
-          if m~=0 then
-            packet[main_state[4]] = 0
-          end
-          local m = bit.band(getnumber(21),bit.lshift(1,2))  --主钩-运行速度
-          if m==0 then
-            packet[main_state[5]] = 0
-          else
-            packet[main_state[5]] = 1
-          end
-          for i=0,3 do
-              local m = bit.band(getnumber(21),bit.lshift(1,(4+i))  --主钩-上限位
-              if m==0 then
-                packet[main_state[6+i]] = 0
-              else
-                packet[main_state[6+i]] = 1
-              end
-          end
-          for i=0,4 do
-              local m = bit.band(getnumber(20),bit.lshift(1,i))  --主钩-主钩的反转反馈
-              if m==0 then
-                packet[main_state[10+i]] = 0
-              else
-                packet[main_state[10+i]] = 1
-              end
-          end
-          for i=1,14,1 do  
-              packet[main_state[14+i]] =  bit.lshift( getnumber(22+i*2) , 8 ) + getnumber(23+i*2) --起升高度、离地距离、....、报警值   
-          end
+        local func = getnumber(10)  --数据类型功能码
 
-          if(cranetype>0) then   --副钩出现 4机构和5机构
-              for i=1,3,1 do  
-                  packet[vice_state[i]] =  bit.lshift( getnumber(50+i*2) , 8 ) + getnumber(51+i*2) --状态、故障、控制方式   
-              end
-              --解析副起升数字量输入 bit0 1 2 4 5 13对应正转反转高速 正转限位反转限位抱闸状态
-              local m = bit.band(getnumber(59),bit.lshift(1,0)) --副钩-运行方向
-              if m~=0 then
-                packet[vice_state[4]] = 1
-              end
-              local m = bit.band(getnumber(59),bit.lshift(1,1))
-              if m~=0 then
-                packet[vice_state[4]] = 0
-              end
-              local m = bit.band(getnumber(59),bit.lshift(1,2))  --副钩-运行速度
-              if m==0 then
-                packet[vice_state[5]] = 0
-              else
-                packet[vice_state[5]] = 1
-              end
-              for i=0,3 do
-                  local m = bit.band(getnumber(59),bit.lshift(1,(4+i))  --副钩-上限位
-                  if m==0 then
-                    packet[vice_state[6+i]] = 0
-                  else
-                    packet[vice_state[6+i]] = 1
-                  end
-              end
-              for i=0,4 do
-                  local m = bit.band(getnumber(58),bit.lshift(1,i))  --副钩-反转反馈
-                  if m==0 then
-                    packet[vice_state[10+i]] = 0
-                  else
-                    packet[vice_state[10+i]] = 1
-                  end
-              end
-              for i=1,14,1 do  
-                  packet[vice_state[14+i]] =  bit.lshift( getnumber(60+i*2) , 8 ) + getnumber(61+i*2) --起升高度、离地距离、....、报警值   
-              end
-          end
-          --和校验
-          for i=1,(templen+4),1 do        
-          table.insert(FCS_Array,getnumber(i))
-          end
-      ---------------小车数据（有无2号小车数据由起重机机构来判断）---------------------
-      else if func == 0x03 then
-          packet[ cmds[3] ] = 'func-small'
-          FCS_Value = bit.lshift( getnumber(106) , 8 ) + getnumber(107)  
+        if func == 0x01 then
 
-          packet["cranetype"] = bit.lshift( getnumber(12) , 8 ) + getnumber(13)  --起重机类型
-          local cranetype = bit.lshift( getnumber(12) , 8 ) + getnumber(13)      --0：3机构:1：4机构:2：5机构
-            
-          for i=1,2,1 do  
-              packet[small1_state[i]] =  bit.lshift( getnumber(12+i*2) , 8 ) + getnumber(13+i*2) --状态、故障   
-          end
-          --解析小车数字量输入 bit0 1 2 4 5 6 7 8 对应正转反转高速 正转限位反转限位热继抱闸状态
-          local m = bit.band(getnumber(21),bit.lshift(1,0)) --小车-运行方向
-          if m~=0 then
-            packet[small1_state[3]] = 1
-          end
-          local m = bit.band(getnumber(21),bit.lshift(1,1))
-          if m~=0 then
-            packet[small1_state[3]] = 0
-          end
-          local m = bit.band(getnumber(21),bit.lshift(1,2))  --小车-运行速度
-          if m==0 then
-            packet[small1_state[4]] = 0
-          else
-            packet[small1_state[4]] = 1
-          end
-          for i=0,3 do
-              local m = bit.band(getnumber(21),bit.lshift(1,(5+i))  --小车-正转限位
-              if m==0 then
-                packet[small1_state[5+i]] = 0
-              else
-                packet[small1_state[5+i]] = 1
-              end
-          end
-          for i=1,18,1 do  
-              packet[small1_state[8+i]] =  bit.lshift( getnumber(22+i*2) , 8 ) + getnumber(23+i*2) --行程、位置信息、....、散热器温度  
-          end
+            packet[ cmds[3] ] = 'func-controller'
+            FCS_Value = bit.lshift( getnumber(44) , 8 ) + getnumber(45)
 
-          if(cranetype>1) then   --2号小车出现 5机构
-              for i=1,2,1 do  
-                  packet[small2_state[i]] =  bit.lshift( getnumber(58+i*2) , 8 ) + getnumber(59+i*2) --状态、故障   
-              end
-              --解析2号小车数字量输入 bit0 1 2 4 5 6 7 8 对应正转反转高速 正转限位反转限位热继抱闸状态
-              local m = bit.band(getnumber(67),bit.lshift(1,0)) --小车2-运行方向
-              if m~=0 then
-                packet[small2_state[3]] = 1
-              end
-              local m = bit.band(getnumber(67),bit.lshift(1,1))
-              if m~=0 then
-                packet[small2_state[3]] = 0
-              end
-              local m = bit.band(getnumber(67),bit.lshift(1,2))  --小车2-运行速度
-              if m==0 then
-                packet[small2_state[4]] = 0
-              else
-                packet[small2_state[4]] = 1
-              end
-              for i=0,3 do
-                  local m = bit.band(getnumber(67),bit.lshift(1,(5+i))  --小车2-正转限位
-                  if m==0 then
-                    packet[small2_state[5+i]] = 0
-                  else
-                    packet[small2_state[5+i]] = 1
-                  end
-              end
-              for i=1,18,1 do  
-                  packet[small2_state[8+i]] =  bit.lshift( getnumber(68+i*2) , 8 ) + getnumber(69+i*2) --行程、位置信息、....、散热器温度 值   
-              end
+            --解析每位bit
+            for i=0,2 do
+                for j=0,9 do    --X00组 X10组 X20组
+                    local m = bit.band((bit.lshift(getnumber(12+i*2),8)+getnumber(13+i*2)),bit.lshift(1,i))
+                    if m==0 then
+                      packet[ctrl_state[j+1+i*10]] = 0
+                    else
+                      packet[ctrl_state[j+1+i*10]] = 1
+                    end  
+                end
+            end
+            for j=0,1 do    --X30组
+                local m = bit.band(getnumber(33),bit.lshift(1,j))
+                if m==0 then
+                  packet[ctrl_state[31+j]] = 0
+                else
+                  packet[ctrl_state[31+j]] = 1
+                end  
+            end
+            for i=0,2 do    --X50组 X60组 X70组
+                for j=0,1 do    
+                    local m = bit.band(getnumber(19+i*2),bit.lshift(1,j))
+                    if m==0 then
+                      packet[ctrl_state[33+j+i*2]] = 0
+                    else
+                      packet[ctrl_state[33+j+i*2]] = 1
+                    end  
+                end
+            end
+            for j=0,7 do     --K0组
+                local m = bit.band((bit.lshift(getnumber(24),8)+getnumber(25)),bit.lshift(1,j))
+                if m==0 then
+                  packet[ctrl_state[39+j]] = 0
+                else
+                  packet[ctrl_state[39+j]] = 1
+                end  
+            end
+            for i=0,2 do    --Y50组 Y60组 Y70组
+                for j=0,3 do    
+                    local m = bit.band(getnumber(27+i*2),bit.lshift(1,j))
+                    if m==0 then
+                      packet[ctrl_state[47+j+i*4]] = 0
+                    else
+                      packet[ctrl_state[47+j+i*4]] = 1
+                    end  
+                end
+            end
+            for i=0,4,1 do  
+                packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
+            end
 
-          end
-          --和校验
-          for i=1,105,1 do        
+            --和校验
+            for i=1,43,1 do        
               table.insert(FCS_Array,getnumber(i))
-          end
-      ---------------------------------大车数据--------------------------------
-      else if func == 0x04 then
-          packet[ cmds[3] ] = 'func-large'
-          FCS_Value = bit.lshift( getnumber(58) , 8 ) + getnumber(59)
+            end
 
-          for i=1,2,1 do  
-              packet[large_state[i]] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
-          end
-          --解析大车数字量输入 bit0 1 2 4 5 6 7 8 对应正转反转高速 正转限位反转限位热继抱闸状态
-          local m = bit.band(getnumber(19),bit.lshift(1,0)) --大车-运行方向
-          if m~=0 then
-            packet[large_state[3]] = 1
-          end
-          local m = bit.band(getnumber(19),bit.lshift(1,1))
-          if m~=0 then
-            packet[large_state[3]] = 0
-          end
-          local m = bit.band(getnumber(19),bit.lshift(1,2))  --大车-运行速度
-          if m==0 then
-            packet[large_state[4]] = 0
-          else
-            packet[large_state[4]] = 1
-          end
-          for i=0,3 do
-              local m = bit.band(getnumber(19),bit.lshift(1,(5+i))  --大车-正转限位
-              if m==0 then
-                packet[large_state[5+i]] = 0
-              else
-                packet[large_state[5+i]] = 1
-              end
-          end
-          for i=1,18,1 do  
-              packet[large_state[8+i]] =  bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2) --行程、位置信息、....、散热器温度  
-          end
-          --和校验
-          for i=1,57,1 do        
-            table.insert(FCS_Array,getnumber(i))
-          end
-      ----------------------------------控制器数据--------------------------------------
-      else if func == 0x01 then
-          packet[ cmds[3] ] = 'func-controller'
-          FCS_Value = bit.lshift( getnumber(44) , 8 ) + getnumber(45)
+        end  --大if判断最后的结束end
 
-          --解析每位bit
-          for i=0,2 do
-              for j=0,9 do    --X00组 X10组 X20组
-                  local m = bit.band((bit.lshift(getnumber(12+i*2),8)+getnumber(13+i*2)),bit.lshift(1,i))
-                  if m==0 then
-                    packet[ctrl_state[j+1+i*10]] = 0
-                  else
-                    packet[ctrl_state[j+1+i*10]] = 1
-                  end  
-              end
-          end
-          for j=0,1 do    --X30组
-              local m = bit.band(getnumber(33),bit.lshift(1,j))
-              if m==0 then
-                packet[ctrl_state[31+j]] = 0
-              else
-                packet[ctrl_state[31+j]] = 1
-              end  
-          end
-          for i=0,2 do    --X50组 X60组 X70组
-              for j=0,1 do    
-                  local m = bit.band(getnumber(19+i*2),bit.lshift(1,j))
-                  if m==0 then
-                    packet[ctrl_state[33+j+i*2]] = 0
-                  else
-                    packet[ctrl_state[33+j+i*2]] = 1
-                  end  
-              end
-          end
-          for j=0,7 do     --K0组
-              local m = bit.band((bit.lshift(getnumber(24),8)+getnumber(25)),bit.lshift(1,j))
-              if m==0 then
-                packet[ctrl_state[39+j]] = 0
-              else
-                packet[ctrl_state[39+j]] = 1
-              end  
-          end
-          for i=0,2 do    --Y50组 Y60组 Y70组
-              for j=0,3 do    
-                  local m = bit.band(getnumber(27+i*2),bit.lshift(1,j))
-                  if m==0 then
-                    packet[ctrl_state[47+j+i*4]] = 0
-                  else
-                    packet[ctrl_state[47+j+i*4]] = 1
-                  end  
-              end
-          end
-          for i=0,4,1 do  
-              packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
-          end
+       -- packet[ cmds[4] ] = getnumber(11)
 
-          --和校验
-          for i=1,43,1 do        
-            table.insert(FCS_Array,getnumber(i))
-          end
-      ----------------------------------起重主监控数据--------------------------------------
-      else if func == 0x00 then
-          packet[ cmds[3] ] = 'func-crane'
-          FCS_Value = bit.lshift( getnumber(88) , 8 ) + getnumber(89)
-
-          packet["cranetype"] = bit.lshift(getnumber(14),8) + getnumber(15)
-          local cranetype = bit.lshift(getnumber(14),8) + getnumber(15)      --0：3机构:1：4机构:2：5机构
-
-          packet[crane_state[45]] = bit.lshift(getnumber(20),8)+getnumber(21)    --整机状态
-          if((bit.lshift(getnumber(22),8)+getnumber(23))>0) then
-             packet[crane_state[45]] = 2                                         --整机状态
-          end
-
-          local x = bit.lshift(getnumber(26),8)+getnumber(27)                    --主起升机构状态
-          if(x>0 and x<5 ) then
-            packet[crane_state[46]] = 1
-          else 
-            packet[crane_state[46]] = 0
-          end
-          if((bit.lshift(getnumber(28),8)+getnumber(29))>0)
-             packet[crane_state[46]] = 2                                         --主起升机构状态
-          end
-          packet[crane_state[35]] = bit.lshift(getnumber(30),8)+getnumber(31)  --主钩状态-控制方式
-          packet[crane_state[37]] = bit.lshift(getnumber(34),8)+getnumber(35)  --主钩状态-离地高度
-          packet[crane_state[44]] = bit.lshift(getnumber(36),8)+getnumber(37)    --主钩状态-钩载显示
-          if((bit.lshift(getnumber(30),8)+getnumber(31))>0) then
-            packet[crane_state[39]] = bit.lshift(getnumber(38),8)+getnumber(39)   --主钩状态-变频器状态
-            packet[crane_state[43]] = bit.lshift(getnumber(40),8)+getnumber(41)    --主钩状态-故障代码  
-          end
-          --解析主起升数字量输入 bit0 1 2 4 5 13对应正转反转高速 正转限位反转限位抱闸状态
-          local m = bit.band(getnumber(33),bit.lshift(1,0)) --主钩-运行方向
-          if m~=0 then
-            packet[crane_state[36]] = 1
-          end
-          local m = bit.band(getnumber(33),bit.lshift(1,1))
-          if m~=0 then
-            packet[crane_state[36]] = 0
-          end
-          local m = bit.band(getnumber(33),bit.lshift(1,2))  --主钩-运行速度
-          if m==0 then
-            packet[crane_state[38]] = 0
-          else
-            packet[crane_state[38]] = 1
-          end
-          local m = bit.band(getnumber(33),bit.lshift(1,4))  --主钩-上限位
-          if m==0 then
-            packet[crane_state[40]] = 0
-          else
-            packet[crane_state[40]] = 1
-          end
-          local m = bit.band(getnumber(33),bit.lshift(1,5))  --主钩-下限位
-          if m==0 then
-            packet[crane_state[41]] = 0
-          else
-            packet[crane_state[41]] = 1
-          end
-          local m = bit.band(getnumber(32),bit.lshift(1,5))  --主钩-抱闸状态
-          if m==0 then
-            packet[crane_state[42]] = 0
-          else
-            packet[crane_state[42]] = 1
-          end
-          
-          if(cranetype >0)then
-              local x = bit.lshift(getnumber(62),8)+getnumber(63)                    --副起升机构状态
-              if(x>0 and x<5 ) then
-                packet[crane_state[47]] = 1
-              else 
-                packet[crane_state[47]] = 0
-              end
-              if((bit.lshift(getnumber(64),8)+getnumber(65))>0)
-                 packet[crane_state[47]] = 2                                         --副起升机构状态
-              end 
-              packet[crane_state[25]] = bit.lshift(getnumber(66),8)+getnumber(67)  --副钩状态-控制方式
-              packet[crane_state[27]] = bit.lshift(getnumber(70),8)+getnumber(71)  --副钩状态-离地高度
-              packet[crane_state[34]] = bit.lshift(getnumber(72),8)+getnumber(73)    --副钩状态-钩载显示
-              if((bit.lshift(getnumber(66),8)+getnumber(67))>0) then
-                packet[crane_state[29]] = bit.lshift(getnumber(74),8)+getnumber(75)   --副钩状态-变频器状态
-                packet[crane_state[33]] = bit.lshift(getnumber(76),8)+getnumber(77)    --副钩状态-故障代码
-              end
-              --解析副起升数字量输入 bit0 1 2 4 5 13对应正转反转高速 正转限位反转限位抱闸状态
-              local m = bit.band(getnumber(33),bit.lshift(1,0)) --副钩-运行方向
-              if m~=0 then
-                packet[crane_state[26]] = 1
-              end
-              local m = bit.band(getnumber(33),bit.lshift(1,1))
-              if m~=0 then
-                packet[crane_state[26]] = 0
-              end
-              local m = bit.band(getnumber(33),bit.lshift(1,2))  --副钩-运行速度
-              if m==0 then
-                packet[crane_state[28]] = 0
-              else
-                packet[crane_state[28]] = 1
-              end
-              local m = bit.band(getnumber(33),bit.lshift(1,4))  --副钩-上限位
-              if m==0 then
-                packet[crane_state[30]] = 0
-              else
-                packet[crane_state[30]] = 1
-              end
-              local m = bit.band(getnumber(33),bit.lshift(1,5))  --副钩-下限位
-              if m==0 then
-                packet[crane_state[31]] = 0
-              else
-                packet[crane_state[31]] = 1
-              end
-              local m = bit.band(getnumber(32),bit.lshift(1,5))  --副钩-抱闸状态
-              if m==0 then
-                packet[crane_state[32]] = 0
-              else
-                packet[crane_state[32]] = 1
-              end
-          end
-
-          local x = bit.lshift(getnumber(42),8)+getnumber(43)                    --小车1机构状态
-          if(x>2) then
-            packet[crane_state[48]] = 1
-          else 
-            packet[crane_state[48]] = 0
-          end
-          if((bit.lshift(getnumber(88),8)+getnumber(89))>0)
-             packet[crane_state[48]] = 2                                         --小车1机构状态
-          end 
-          --解析小车数字量输入 bit0 1 2 5 6 7对应正转反转高速 正转限位反转限位抱闸状态
-          local m = bit.band(getnumber(45),bit.lshift(1,0)) --小车1状态-运行方向
-          if m~=0 then
-            packet[crane_state[17]] = 1
-          end
-          local m = bit.band(getnumber(45),bit.lshift(1,1))
-          if m~=0 then
-            packet[crane_state[17]] = 0
-          end
-          local m = bit.band(getnumber(45),bit.lshift(1,2))  --小车1状态-运行速度
-          if m==0 then
-            packet[crane_state[19]] = 0
-          else
-            packet[crane_state[19]] = 1
-          end
-          local m = bit.band(getnumber(45),bit.lshift(1,5))  --小车1状态-正转限位
-          if m==0 then
-            packet[crane_state[21]] = 0
-          else
-            packet[crane_state[21]] = 1
-          end
-          local m = bit.band(getnumber(45),bit.lshift(1,6))  --小车1状态-反转限位
-          if m==0 then
-            packet[crane_state[22]] = 0
-          else
-            packet[crane_state[22]] = 1
-          end
-          local m = bit.band(getnumber(45),bit.lshift(1,7))  --小车1状态-抱闸状态
-          if m==0 then
-            packet[crane_state[23]] = 0
-          else
-            packet[crane_state[23]] = 1
-          end
-          packet[crane_state[18]] = bit.lshift(getnumber(46),8)+getnumber(47) --小车1状态-位置信息
-          packet[crane_state[20]] = bit.lshift(getnumber(50),8)+getnumber(51) --小车1状态-变频器状态
-          packet[crane_state[24]] = bit.lshift(getnumber(48),8)+getnumber(49) --小车1状态-故障代码            
-           
-          if(cranetype >1)then 
-              local x = bit.lshift(getnumber(78),8)+getnumber(79)                    --小车2机构状态
-              if(x>2) then
-                packet[crane_state[49]] = 1
-              else 
-                packet[crane_state[49]] = 0
-              end
-              if((bit.lshift(getnumber(90),8)+getnumber(91))>0)
-                 packet[crane_state[49]] = 2                                         --小车2机构状态
-              end  
-              --解析2号小车数字量输入 bit0 1 2 5 6 7对应正转反转高速 正转限位反转限位抱闸状态
-              local m = bit.band(getnumber(81),bit.lshift(1,0)) --小车2状态-运行方向
-              if m~=0 then
-                packet[crane_state[9]] = 1
-              end
-              local m = bit.band(getnumber(81),bit.lshift(1,1))
-              if m~=0 then
-                packet[crane_state[9]] = 0
-              end
-              local m = bit.band(getnumber(81),bit.lshift(1,2))  --小车2状态-运行速度
-              if m==0 then
-                packet[crane_state[11]] = 0
-              else
-                packet[crane_state[11]] = 1
-              end
-              local m = bit.band(getnumber(81),bit.lshift(1,5))  --小车2状态-正转限位
-              if m==0 then
-                packet[crane_state[13]] = 0
-              else
-                packet[crane_state[13]] = 1
-              end
-              local m = bit.band(getnumber(81),bit.lshift(1,6))  --小车2状态-反转限位
-              if m==0 then
-                packet[crane_state[14]] = 0
-              else
-                packet[crane_state[14]] = 1
-              end
-              local m = bit.band(getnumber(81),bit.lshift(1,7))  --小车2状态-抱闸状态
-              if m==0 then
-                packet[crane_state[15]] = 0
-              else
-                packet[crane_state[15]] = 1
-              end
-              packet[crane_state[10]] = bit.lshift(getnumber(46),8)+getnumber(47) --小车2状态-位置信息
-              packet[crane_state[12]] = bit.lshift(getnumber(50),8)+getnumber(51) --小车2状态-变频器状态
-              packet[crane_state[16]] = bit.lshift(getnumber(48),8)+getnumber(49) --小车2状态-故障代码 
-          end
-
-          local x = bit.lshift(getnumber(52),8)+getnumber(53)                    --大车机构状态
-          if(x>2) then
-            packet[crane_state[50]] = 1
-          else 
-            packet[crane_state[50]] = 0
-          end
-          if((bit.lshift(getnumber(92),8)+getnumber(93))>0)
-             packet[crane_state[50]] = 2                                         --大车机构状态
-          end  
-            --解析大车数字量输入 bit0 1 2 5 6 7对应正转反转高速 正转限位反转限位抱闸状态
-          local m = bit.band(getnumber(55),bit.lshift(1,0))
-          if m~=0 then
-            packet[crane_state[1]] = 1
-          end
-          local m = bit.band(getnumber(55),bit.lshift(1,1))
-          if m~=0 then
-            packet[crane_state[1]] = 0
-          end
-          local m = bit.band(getnumber(55),bit.lshift(1,2))
-          if m==0 then
-            packet[crane_state[3]] = 0
-          else
-            packet[crane_state[3]] = 1
-          end
-          local m = bit.band(getnumber(55),bit.lshift(1,5))
-          if m==0 then
-            packet[crane_state[5]] = 0
-          else
-            packet[crane_state[5]] = 1
-          end
-          local m = bit.band(getnumber(55),bit.lshift(1,6))
-          if m==0 then
-            packet[crane_state[6]] = 0
-          else
-            packet[crane_state[6]] = 1
-          end
-          local m = bit.band(getnumber(55),bit.lshift(1,7))
-          if m==0 then
-            packet[crane_state[7]] = 0
-          else
-            packet[crane_state[7]] = 1
-          end
-          packet[crane_state[2]] = bit.lshift(getnumber(56),8)+getnumber(57)
-          packet[crane_state[4]] = bit.lshift(getnumber(60),8)+getnumber(61)
-          packet[crane_state[8]] = bit.lshift(getnumber(59),8)+getnumber(60)
-
-          if((bit.lshift(getnumber(12),8)+getnumber(13))==4) then  --电源状态
-              packet[crane_state[51]] = 1
-          else 
-              packet[crane_state[51]] = 0
-          end
-          --解析系统输入 bit0 1 2 3 4启动 复位 急停相序错误 主接触器
-          for i=0,4 do
-              local m = bit.band(getnumber(17),bit.lshift(1,i))
-              if m==0 then
-                packet[crane_state[52+i]] = 0
-              else
-                packet[crane_state[52+i]] = 1
-              end
-          end
-          --和校验
-          for i=1,93,1 do        
-            table.insert(FCS_Array,getnumber(i))
-          end
-
-      end  --大if判断最后的结束end
-
-     -- packet[ cmds[4] ] = getnumber(11)
-
-      if(utilCalcFCS(FCS_Array,#FCS_Array) == FCS_Value) then
-        packet['status'] = 'SUCCESS'
-      else
-        packet = {}
-        packet['status'] = 'FCS-ERROR'
-      end
-
+        if(utilCalcFCS(FCS_Array,#FCS_Array) == FCS_Value) then
+          packet['status'] = 'SUCCESS'
+        else
+          packet = {}
+          packet['status'] = 'FCS-ERROR'
+        end
     end 
 
     return Json(packet)
