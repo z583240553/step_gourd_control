@@ -348,14 +348,10 @@ function _M.decode(payload)
         --packet[ cmds[0] ] = templen
         packet[ cmds[1] ] = bit.lshift( getnumber(5) , 8 ) + bit.lshift( getnumber(6) , 16 ) + bit.lshift( getnumber(7) , 8 ) + getnumber(8)
 
-        --local mode = getnumber(9)
-        --if mode == 1 then
-            --packet[ cmds[2] ] = 'Mode-485'
-          --else
-            --packet[ cmds[2] ] = 'Mode-232'
-        --end
+
 
         local func = getnumber(10)  --数据类型功能码  
+        packet['func'] = func
 
     end --判断头是否正确的end
 
