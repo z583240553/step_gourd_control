@@ -307,39 +307,6 @@ for j=1,4,1 do
 end
 ]]
 
-local num = 1
-local parameter_cmds = {}
-
-for k,v in ipairs(para_0) do
-  local l = para_1[v]
-  for i=0,l-1,1 do
-    if ("P71_" == v) then
-      if(i<=25) then
-        parameter_cmds[num] = v..string.format("%02d",i)
-      else
-        parameter_cmds[num] = v..string.format("%02d",i+7)
-      end
-    else
-      parameter_cmds[num] = v..string.format("%02d",i)
-    end
-    num = num + 1
-  end
-end
-
-local fault_cmds = {}
-local faultcmds = {
-    [1] = "real_speed",
-    [2] = "given_speed",
-    [3] = "bus_voltage",
-    [4] = "current",
-    [5] = "code",
-}
-for i=0,7,1 do
-  for j=1,5,1 do
-    fault_cmds[i*5+j] = "fault"..i.."_"..faultcmds[j] 
-  end
-end
-
 function utilCalcFCS( pBuf , len )
 	local rtrn = 0
 	local l = len
@@ -370,7 +337,7 @@ function _M.decode(payload)
 
     local head1 = getnumber(1)
     local head2 = getnumber(2)
-
+    packet['test0'] = 'in'
     if ( head1 == 0x3B and head2 == 0x31 ) then 
          packet['test1'] = 'head ok'
       
@@ -388,33 +355,9 @@ function _M.decode(payload)
             --packet[ cmds[2] ] = 'Mode-232'
         --end
 
-        local func = getnumber(10)  --数据类型功能码
+        local func = getnumber(10)  --数据类型功能码  
 
-        if func == 0x01 then
-
-            packet[ cmds[3] ] = 'func-controller'
-            FCS_Value = bit.lshift( getnumber(44) , 8 ) + getnumber(45)
-            
-            for i=0,4,1 do  
-                packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
-            end
-
-            --和校验
-            for i=1,43,1 do        
-              table.insert(FCS_Array,getnumber(i))
-            end
-
-        end  --大if判断最后的结束end
-
-       -- packet[ cmds[4] ] = getnumber(11)
-
-        if(utilCalcFCS(FCS_Array,#FCS_Array) == FCS_Value) then
-          packet['status'] = 'SUCCESS'
-        else
-          packet = {}
-          packet['status'] = 'FCS-ERROR'
-        end
-    end 
+    end --判断头是否正确的end
 
     return Json(packet)
 end
