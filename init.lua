@@ -352,6 +352,28 @@ function _M.decode(payload)
 
         local func = getnumber(10)  --数据类型功能码  
         packet['func'] = func
+        if func == 0x01 then
+
+            packet[ cmds[3] ] = 'func-controller'
+            FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
+            
+            for i=0,4,1 do  
+                packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
+            end
+
+            --和校验
+            for i=1,43,1 do        
+              table.insert(FCS_Array,getnumber(i))
+            end
+
+        end  --大if判断最后的结束end
+
+        if(utilCalcFCS(FCS_Array,#FCS_Array) == FCS_Value) then
+          packet['status'] = 'SUCCESS'
+        else
+          packet = {}
+          packet['status'] = 'FCS-ERROR'
+        end
 
     end --判断头是否正确的end
 
