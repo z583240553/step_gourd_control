@@ -539,7 +539,7 @@ function _M.decode(payload)
         elseif func == 0x02 then
             packet[ cmds[3] ] = 'func-lifting'
         
-            packet["cranetype"] = bit.lshift(getnumber(12),8) + getnumber(13)  --起重机类型
+            packet['cranetype'] = bit.lshift(getnumber(12),8) + getnumber(13)  --起重机类型
 
             for i=1,3,1 do  
                 packet[ main_state[i] ] =  bit.lshift(getnumber(12+i*2),8) + getnumber(13+i*2) --状态、故障、控制方式   
@@ -587,7 +587,7 @@ function _M.decode(payload)
                 end
             end
             
-            if packet["cranetype"]>0 then   -- 4机构和5机构 副钩出现
+            if packet['cranetype']>0 then   -- 4机构和5机构 副钩出现
 
                 for i=1,3,1 do  
                     packet[ vice_state[i] ] =  bit.lshift(getnumber(54+i*2),8) + getnumber(55+i*2) --状态、故障、控制方式   
@@ -638,20 +638,20 @@ function _M.decode(payload)
           
             packet[ cmds[3] ] = 'func-crane'
 
-            packet["cranetype"] = bit.lshift(getnumber(14),8) + getnumber(15) --0：3机构:1：4机构:2：5机构  
+            packet['cranetype'] = bit.lshift(getnumber(14),8) + getnumber(15) --0：3机构:1：4机构:2：5机构  
 
             packet[ crane_state[45] ] = bit.lshift(getnumber(20),8)+getnumber(21)    --整机状态
-            if((bit.lshift(getnumber(22),8)+getnumber(23))>0) then
+            if (bit.lshift(getnumber(22),8)+getnumber(23))>0 then
                packet[ crane_state[45] ] = 2                                         --整机状态
             end
-            --[[
+            
             local liftstate = bit.lshift(getnumber(26),8)+getnumber(27)                    --主起升机构状态
-            if(liftstate>0 and liftstate<5 ) then
+            if liftstate>0 and liftstate<5 then
               packet[ crane_state[46] ] = 1
             else 
               packet[ crane_state[46] ] = 0
             end
-            if((bit.lshift(getnumber(28),8)+getnumber(29))>0)
+            if (bit.lshift(getnumber(28),8)+getnumber(29))>0 then
                packet[ crane_state[46] ] = 2                                         --主起升机构状态
             end
             packet[ crane_state[35] ] = bit.lshift(getnumber(30),8)+getnumber(31)   --主钩状态-控制方式
@@ -661,6 +661,7 @@ function _M.decode(payload)
               packet[ crane_state[39] ] = bit.lshift(getnumber(38),8)+getnumber(39)   --主钩状态-变频器状态
               packet[ crane_state[43] ] = bit.lshift(getnumber(40),8)+getnumber(41)    --主钩状态-故障代码  
             end
+            
             --通过起升状态判断运行方向和运行速度
             if liftstate==1 or liftstate==2 then  
                 packet[ crane_state[36] ] = 1
@@ -691,18 +692,18 @@ function _M.decode(payload)
             
             if packet["cranetype"]>0 then
                 local viceliftstate = bit.lshift(getnumber(62),8)+getnumber(63)                    --副起升机构状态
-                if(viceliftstate>0 and viceliftstate<5 ) then
+                if viceliftstate>0 and viceliftstate<5 then
                   packet[ crane_state[47] ] = 1
                 else 
                   packet[ crane_state[47] ] = 0
                 end
-                if((bit.lshift(getnumber(64),8)+getnumber(65))>0)
+                if (bit.lshift(getnumber(64),8)+getnumber(65))>0 then
                    packet[ crane_state[47] ] = 2                                         --副起升机构状态
                 end 
                 packet[ crane_state[25] ] = bit.lshift(getnumber(66),8)+getnumber(67)  --副钩状态-控制方式
                 packet[ crane_state[27] ] = (bit.lshift(getnumber(70),8)+getnumber(71))/100  --副钩状态-离地高度
                 packet[ crane_state[34] ] = (bit.lshift(getnumber(72),8)+getnumber(73))/100    --副钩状态-钩载显示
-                if(packet[ crane_state[25] ]>0) then
+                if packet[ crane_state[25] ]>0 then
                   packet[ crane_state[29] ] = bit.lshift(getnumber(74),8)+getnumber(75)   --副钩状态-变频器状态
                   packet[ crane_state[33] ] = bit.lshift(getnumber(76),8)+getnumber(77)    --副钩状态-故障代码
                 end
@@ -736,12 +737,12 @@ function _M.decode(payload)
             end --副钩end
             
             local small1state = bit.lshift(getnumber(42),8)+getnumber(43)                    --小车1机构状态
-            if(small1state>1) then
+            if small1state>1 then
               packet[ crane_state[48] ] = 1
             else 
               packet[ crane_state[48] ] = 0
             end
-            if((bit.lshift(getnumber(88),8)+getnumber(89))>0)
+            if (bit.lshift(getnumber(88),8)+getnumber(89))>0 then
                packet[ crane_state[48] ] = 2                                         --小车1机构状态
             end 
 
@@ -778,7 +779,7 @@ function _M.decode(payload)
                 else 
                   packet[ crane_state[49] ] = 0
                 end
-                if((bit.lshift(getnumber(90),8)+getnumber(91))>0)
+                if (bit.lshift(getnumber(90),8)+getnumber(91))>0 then
                    packet[ crane_state[49] ] = 2                                         --小车2机构状态
                 end  
 
@@ -810,12 +811,12 @@ function _M.decode(payload)
             end
 
             local largestate = bit.lshift(getnumber(52),8)+getnumber(53)                    --大车机构状态
-            if(largestate>1) then
+            if largestate>1 then
               packet[ crane_state[50] ] = 1
             else 
               packet[ crane_state[50] ] = 0
             end
-            if((bit.lshift(getnumber(92),8)+getnumber(93))>0)
+            if (bit.lshift(getnumber(92),8)+getnumber(93))>0 then
                packet[ crane_state[50] ] = 2                                         --大车机构状态
             end 
 
@@ -859,7 +860,7 @@ function _M.decode(payload)
                   packet[ crane_state[52+i] ] = 1
                 end
             end
-          ]]
+          
          ------------------------------------------------   
         end  --判断数据类型最后的结束end
 
