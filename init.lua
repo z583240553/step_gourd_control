@@ -445,7 +445,7 @@ function _M.decode(payload)
             elseif packet[ large_state[1] ]==4 or packet[ large_state[1] ]==5 then
                 packet[ large_state[4] ] = 1
             end
-            ]]
+
             --解析大车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
             for i=0,2 do
                 local m = bit.band(getnumber(19),bit.lshift(1,(5+i))  --大车-正转限位 反转限位 抱闸反馈
@@ -455,8 +455,9 @@ function _M.decode(payload)
                   packet[ large_state[5+i] ] = 1
                 end
             end
+            ]]
             for i=1,18,1 do  
-                packet[ large_state[8+i] ] = bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2)--行程、位置信息、....、散热器温度  
+                packet[ large_state[8+i] ] = bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)--行程、位置信息、....、散热器温度  
             end
 
             
