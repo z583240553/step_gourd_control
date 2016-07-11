@@ -173,37 +173,37 @@ local large_state = {
 
 -----------------------------------控制器页面json--------------------------------------
 local ctrl_state = {}
-for j=1,10,1 do
+for i=1,10,1 do
   ctrl_state[i] = "ctrl_x0"..(i-1)  --X00、、X09
 end
-for j=1,10,1 do
+for i=1,10,1 do
   ctrl_state[10+i] = "ctrl_x1"..(i-1) --X10、、X19
 end
-for j=1,10,1 do
+for i=1,10,1 do
   ctrl_state[20+i] = "ctrl_x2"..(i-1) --X20、、X29
 end
-for j=1,2,1 do
+for i=1,2,1 do
   ctrl_state[30+i] = "ctrl_x3"..(i-1) --X30、X31
 end
-for j=1,2,1 do
+for i=1,2,1 do
   ctrl_state[32+i] = "ctrl_x5"..(i-1) --X50、X51
 end
-for j=1,2,1 do
+for i=1,2,1 do
   ctrl_state[34+i] = "ctrl_x6"..(i-1) --X60、X61
 end
-for j=1,2,1 do
+for i=1,2,1 do
   ctrl_state[36+i] = "ctrl_x7"..(i-1) --X70、X71
 end
-for j=1,8,1 do
+for i=1,8,1 do
   ctrl_state[38+i] = "ctrl_k"..(i) --K1、、K8
 end
-for j=1,4,1 do
+for i=1,4,1 do
   ctrl_state[46+i] = "ctrl_y5"..(i-1) --Y50、、Y53
 end
-for j=1,4,1 do
+for i=1,4,1 do
   ctrl_state[50+i] = "ctrl_y6"..(i-1) --Y60、、Y63
 end
-for j=1,4,1 do
+for i=1,4,1 do
   ctrl_state[54+i] = "ctrl_y7"..(i-1) --Y70、、Y73
 end
 ctrl_state[59] = "ctrl_cranetype"        --起重机类型
@@ -350,7 +350,7 @@ function _M.decode(payload)
 
             packet[ cmds[3] ] = 'func-controller'
             FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
-           --[[
+           
             --解析每位bit
             for i=0,2 do
                 for j=0,9 do    --X00组 X10组 X20组
@@ -398,7 +398,7 @@ function _M.decode(payload)
                     end  
                 end
             end
-            ]]
+            
             for i=0,4,1 do  
                 packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
