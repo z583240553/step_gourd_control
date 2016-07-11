@@ -169,7 +169,28 @@ local large_state = {
   [25] = "large_outpower",         --大车的输出功率
   [26] = "large_temp",             --大车的散热器温度
 }
-
+--[[
+local large_state_dot = {
+  [1] = 100,              --大车的大车行程小数位数
+  [2] = 100,         --大车的位置信息小数位数
+  [3] = 1,        --大车的实时脉冲数小数位数
+  [4] = 100           --大车的刹车距离小数位数
+  [5] = 10,         --大车的电机电流小数位数
+  [6] = 10,        --大车的电机电压小数位数
+  [7] = 1,           --大车的抱闸次数小数位数
+  [8] = 1,         --大车的电机运行时间小数位数
+  [9] = 10,         --大车的抱闸运行时间小数位数
+  [10] = 100,            --大车的有功功率小数位数
+  [11] = 100,           --大车的目标频率小数位数
+  [12] = 100,           --大车的反馈频率小数位数
+  [13] = 100,           --大车的输出电流小数位数
+  [14] = 10,          --大车的输出电压小数位数
+  [15] = 1,          --大车的母线电压小数位数
+  [16] = 10,          --大车的输出转矩小数位数
+  [17] = 100,         --大车的输出功率小数位数
+  [18] = 10,             --大车的散热器温度小数位数
+}
+]]
 -----------------------------------控制器页面json--------------------------------------
 local ctrl_state = {}
 for i=1,10,1 do
@@ -404,7 +425,7 @@ function _M.decode(payload)
                 packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
             packet[ ctrl_state[60] ] = packet[ ctrl_state[60] ]/100
-            packet[ ctrl_state[61] ] = packet[ ctrl_state[61] ]/100
+            packet[ ctrl_state[61] ] = packet[ ctrl_state[61] ]/1000
         ------------------------------大车数据--------------------------------
         elseif func==0x04 then
               packet[ 'test' ] = 123
@@ -412,6 +433,7 @@ function _M.decode(payload)
             for i=1,2,1 do  
                 packet[ large_state[i] ] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
             end
+            --[[
             --通过大车状态判断运行方向和运行速度
             if packet[ large_state[1] ]==2 or packet[ large_state[1] ]==4 then  
                 packet[ large_state[3] ] = 1
@@ -433,8 +455,9 @@ function _M.decode(payload)
                 end
             end
             for i=1,18,1 do  
-                packet[ large_state[8+i] ] =  bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2) --行程、位置信息、....、散热器温度  
+                packet[ large_state[8+i] ] = bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2)--行程、位置信息、....、散热器温度  
             end
+            ]]
             
         end  --大if判断最后的结束end
 
