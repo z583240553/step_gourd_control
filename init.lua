@@ -290,37 +290,38 @@ local crane_state = {
   [55] = "crn_phase",                 --相序错误
   [56] = "crn_contactor",             --主接触器
 }
-for j=1,4,1 do
+--[[
+for i=1,4,1 do
   crane_state[56+i] = "crn_"..i.."_mainup"    --i档主钩上升
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[60+i] = "crn_"..i.."_maindown"  --i档主钩下降
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[64+i] = "crn_"..i.."_viceup"    --i档副钩上升
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[68+i] = "crn_"..i.."_vicedown"  --i档副钩下降
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[72+i] = "crn_"..i.."_small1for" --i档小车1正转
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[76+i] = "crn_"..i.."_small1rev" --i档小车1反转
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[80+i] = "crn_"..i.."_small2for" --i档小车2正转
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[84+i] = "crn_"..i.."_small2rev" --i档小车2反转
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[88+i] = "crn_"..i.."_largefor"  --i档大车正转
 end
-for j=1,4,1 do
+for i=1,4,1 do
   crane_state[92+i] = "crn_"..i.."_largerev"  --i档大车反转
 end
-
+]]
 
 function utilCalcFCS( pBuf , len )
 	local rtrn = 0
