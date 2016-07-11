@@ -343,8 +343,9 @@ function _M.decode(payload)
         packet[ cmds[1] ] = bit.lshift( getnumber(5) , 8 ) + bit.lshift( getnumber(6) , 16 ) + bit.lshift( getnumber(7) , 8 ) + getnumber(8)
 
         local func = getnumber(10)  --数据类型功能码 
-        ---------------------------------控制器数据--------------------------------
-        if func == 0x01 then
+       
+        if func == 0x01 then   --控制器数据--------------------------------
+
             packet[ cmds[3] ] = 'func-controller'
             FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
            
@@ -406,8 +407,9 @@ function _M.decode(payload)
             for i=1,43,1 do        
               table.insert(FCS_Array,getnumber(i))
             end
-        ---------------------------------大车数据--------------------------------
-        else if func == 0x04 then
+
+        else if func == 0x04 then          --大车数据--------------------------------
+          
             packet[ cmds[3] ] = 'func-large'
             FCS_Value = bit.lshift( getnumber(58) , 8 ) + getnumber(59)
             -- packet[ large_state[5] ] = 66
