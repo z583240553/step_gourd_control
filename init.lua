@@ -216,9 +216,9 @@ local ctrl_state ={
   [63] = "ctrl_alarm",            --称重报警值
 }
 local fault_cmds = {}
-  for j=1,5,1 do
-    fault_cmds[j] = "fault"..i.."ab" 
-  end
+for j=1,5,1 do
+  fault_cmds[j] = "fault"..j.."ab" 
+end
 --[[
 -----------------------------------起重主监控页面json--------------------------------------
 local crane_state = {
@@ -364,15 +364,12 @@ function _M.decode(payload)
             for j=0,1 do    --X30组
                 local m = bit.band(getnumber(33),bit.lshift(1,j))
                 if m==0 then
-                  packet[fault_cmds[4+j]] = 0
+                  packet[ fault_cmds[4+j] ] = 0
                 else
-                  packet[fault_cmds[4+j]] = 1
+                  packet[ fault_cmds[4+j] ] = 1
                 end  
             end
 
-            packet[ fault_cmds[1] ] = 11
-            packet[ fault_cmds[2] ] = 12
-            packet[ fault_cmds[3] ] = 13
             
             for i=0,4,1 do  
                 packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
