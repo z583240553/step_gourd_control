@@ -644,7 +644,7 @@ function _M.decode(payload)
             if((bit.lshift(getnumber(22),8)+getnumber(23))>0) then
                packet[ crane_state[45] ] = 2                                         --整机状态
             end
-
+            --[[
             local liftstate = bit.lshift(getnumber(26),8)+getnumber(27)                    --主起升机构状态
             if(liftstate>0 and liftstate<5 ) then
               packet[ crane_state[46] ] = 1
@@ -688,7 +688,7 @@ function _M.decode(payload)
             else
               packet[ crane_state[42] ] = 1
             end
-            --[[
+            
             if packet["cranetype"]>0 then
                 local viceliftstate = bit.lshift(getnumber(62),8)+getnumber(63)                    --副起升机构状态
                 if(viceliftstate>0 and viceliftstate<5 ) then
