@@ -734,7 +734,7 @@ function _M.decode(payload)
                   packet[ crane_state[32] ] = 1
                 end
             end --副钩end
-
+            --[[
             local small1state = bit.lshift(getnumber(42),8)+getnumber(43)                    --小车1机构状态
             if(small1state>1) then
               packet[ crane_state[48] ] = 1
@@ -859,7 +859,7 @@ function _M.decode(payload)
                   packet[ crane_state[52+i] ] = 1
                 end
             end
-          
+          ]]
          ------------------------------------------------   
         end  --判断数据类型最后的结束end
 
