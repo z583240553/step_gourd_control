@@ -402,7 +402,7 @@ function _M.decode(payload)
             for i=0,4,1 do  
                 packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
-        else if func==0x04 then
+        elseif func==0x04 then
 
             packet[ 'large'] = 123
         end  --大if判断最后的结束end
