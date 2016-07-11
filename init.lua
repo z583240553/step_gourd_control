@@ -456,7 +456,7 @@ function _M.decode(payload)
                 end
             end
             for i=1,18,1 do  
-                packet[ large_state[8+i] ] = (bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2))/large_state_dot[i] --行程、位置信息、....、散热器温度  
+                packet[ large_state[8+i] ] = bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2) --行程、位置信息、....、散热器温度  
             end
 
         end  --大if判断最后的结束end
