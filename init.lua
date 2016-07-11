@@ -139,7 +139,7 @@ local small2_state = {
   [26] = "small2_temp",             --小车2的散热器温度
 }
 ]]
-
+--[[
 -----------------------------------大车页面json--------------------------------------
 local large_state = {
   [1] = "large_state",             --大车的机构状态
@@ -169,7 +169,7 @@ local large_state = {
   [25] = "large_outpower",         --大车的输出功率
   [26] = "large_temp",             --大车的散热器温度
 }
-
+]]
 -----------------------------------控制器页面json--------------------------------------
 local ctrl_state = {}
 for i=1,10,1 do
@@ -410,7 +410,7 @@ function _M.decode(payload)
         else if func == 0x04 then
             packet[ cmds[3] ] = 'func-large'
             FCS_Value = bit.lshift( getnumber(58) , 8 ) + getnumber(59)
-             packet[ large_state[5] ] = 66
+            -- packet[ large_state[5] ] = 66
            --[[
             for i=1,2,1 do  
                 packet[ large_state[i] ] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
