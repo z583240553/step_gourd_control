@@ -350,56 +350,57 @@ function _M.decode(payload)
 
             packet[ cmds[3] ] = 'func-controller'
             FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
-
+           --[[
             --解析每位bit
             for i=0,2 do
                 for j=0,9 do    --X00组 X10组 X20组
                     local m = bit.band((bit.lshift(getnumber(12+i*2),8)+getnumber(13+i*2)),bit.lshift(1,i))
                     if m==0 then
-                      packet[ctrl_state[j+1+i*10]] = 0
+                      packet[ ctrl_state[j+1+i*10] ] = 0
                     else
-                      packet[ctrl_state[j+1+i*10]] = 1
+                      packet[ ctrl_state[j+1+i*10] ] = 1
                     end  
                 end
             end
             for j=0,1 do    --X30组
                 local m = bit.band(getnumber(33),bit.lshift(1,j))
                 if m==0 then
-                  packet[ctrl_state[31+j]] = 0
+                  packet[ ctrl_state[31+j] ] = 0
                 else
-                  packet[ctrl_state[31+j]] = 1
+                  packet[ ctrl_state[31+j] ] = 1
                 end  
             end
             for i=0,2 do    --X50组 X60组 X70组
                 for j=0,1 do    
                     local m = bit.band(getnumber(19+i*2),bit.lshift(1,j))
                     if m==0 then
-                      packet[ctrl_state[33+j+i*2]] = 0
+                      packet[ ctrl_state[33+j+i*2] ] = 0
                     else
-                      packet[ctrl_state[33+j+i*2]] = 1
+                      packet[ ctrl_state[33+j+i*2] ] = 1
                     end  
                 end
             end
             for j=0,7 do     --K0组
                 local m = bit.band((bit.lshift(getnumber(24),8)+getnumber(25)),bit.lshift(1,j))
                 if m==0 then
-                  packet[ctrl_state[39+j]] = 0
+                  packet[ ctrl_state[39+j] ] = 0
                 else
-                  packet[ctrl_state[39+j]] = 1
+                  packet[ ctrl_state[39+j] ] = 1
                 end  
             end
             for i=0,2 do    --Y50组 Y60组 Y70组
                 for j=0,3 do    
                     local m = bit.band(getnumber(27+i*2),bit.lshift(1,j))
                     if m==0 then
-                      packet[ctrl_state[47+j+i*4]] = 0
+                      packet[ ctrl_state[47+j+i*4] ] = 0
                     else
-                      packet[ctrl_state[47+j+i*4]] = 1
+                      packet[ ctrl_state[47+j+i*4] ] = 1
                     end  
                 end
             end
+            ]]
             for i=0,4,1 do  
-                packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
+                packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
 
             --和校验
