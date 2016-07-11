@@ -139,7 +139,6 @@ local small2_state = {
   [26] = "small2_temp",             --小车2的散热器温度
 }
 ]]
-
 -----------------------------------大车页面json--------------------------------------
 local large_state = {
   [1] = "large_state",             --大车的机构状态
@@ -148,8 +147,8 @@ local large_state = {
   [4] = "large_runspd",            --大车的运行速度
   [5] = "large_forlimit",          --大车的正转限位
   [6] = "large_revlimit",          --大车的反转限位
-  [7] = "large_hotfdk",            --大车的热继反馈
-  [8] = "large_brkfdk",            --大车的抱闸反馈
+  [7] = "large_brkfdk",            --大车的抱闸反馈
+  [8] = "large_motorhot",          --大车的电机过热
   [9] = "large_trip",              --大车的大车行程
   [10] = "large_position",         --大车的位置信息
   [11] = "large_realpulse",        --大车的实时脉冲数
@@ -169,7 +168,26 @@ local large_state = {
   [25] = "large_outpower",         --大车的输出功率
   [26] = "large_temp",             --大车的散热器温度
 }
-
+local large_state_dot = {
+  [1] = 100,              --大车的大车行程小数位数
+  [2] = 100,         --大车的位置信息小数位数
+  [3] = 1,        --大车的实时脉冲数小数位数
+  [4] = 100           --大车的刹车距离小数位数
+  [5] = 10,         --大车的电机电流小数位数
+  [6] = 10,        --大车的电机电压小数位数
+  [7] = 1,           --大车的抱闸次数小数位数
+  [8] = 1,         --大车的电机运行时间小数位数
+  [9] = 10,         --大车的抱闸运行时间小数位数
+  [10] = 100,            --大车的有功功率小数位数
+  [11] = 100,           --大车的目标频率小数位数
+  [12] = 100,           --大车的反馈频率小数位数
+  [13] = 100,           --大车的输出电流小数位数
+  [14] = 10,          --大车的输出电压小数位数
+  [15] = 1,          --大车的母线电压小数位数
+  [16] = 10,          --大车的输出转矩小数位数
+  [17] = 100,         --大车的输出功率小数位数
+  [18] = 10,             --大车的散热器温度小数位数
+}
 -----------------------------------控制器页面json--------------------------------------
 local ctrl_state = {}
 for i=1,10,1 do
@@ -210,8 +228,6 @@ ctrl_state[60] = "ctrl_weight"           --称重吨位
 ctrl_state[61] = "ctrl_signal"           --称重采集信号
 ctrl_state[62] = "ctrl_warn"             --称重预警值
 ctrl_state[63] = "ctrl_alarm"            --称重报警值
-
-
 --[[
 -----------------------------------起重主监控页面json--------------------------------------
 local crane_state = {
@@ -337,19 +353,21 @@ function _M.decode(payload)
     local head1 = getnumber(1)
     local head2 = getnumber(2)
     if ( head1 == 0x3B and head2 == 0x31 ) then 
-        local templen = bit.lshift( getnumber(3) , 8 ) + getnumber(4) --收到的数据长度
 
+        local templen = bit.lshift( getnumber(3) , 8 ) + getnumber(4) --收到的数据长度
         FCS_Value = bit.lshift(getnumber(templen+5),8) + getnumber(templen+6)
         --templen will be the important parameter in the next calculate
         --in different task some number mabey be changed 
         --to avoid unnecessary problem
         --packet[ cmds[0] ] = templen
         packet[ cmds[1] ] = bit.lshift( getnumber(5) , 8 ) + bit.lshift( getnumber(6) , 16 ) + bit.lshift( getnumber(7) , 8 ) + getnumber(8)
-        
+
         local func = getnumber(10)  --数据类型功能码 
-        if func == 0x01 then
+        -----------------------控制器数据--------------------------------
+        if func == 0x01 then   
+
             packet[ cmds[3] ] = 'func-controller'
-            --FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
+         --   FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
            
             --解析每位bit
             for i=0,2 do
@@ -402,9 +420,45 @@ function _M.decode(payload)
             for i=0,4,1 do  
                 packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
-        elseif func==0x04 then
+            packet[ ctrl_state[60] ] = packet[ ctrl_state[60] ]/100;
+            packet[ ctrl_state[61] ] = packet[ ctrl_state[61] ]/1000;
+              --[[
+            --和校验
+            for i=1,43,1 do        
+              table.insert(FCS_Array,getnumber(i))
+            end
+            ]]
+        ----------------------大车数据--------------------------------
+        elseif func == 0x04 then          
+          
+            packet[ cmds[3] ] = 'func-large'
+            for i=1,2,1 do  
+                packet[ large_state[i] ] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
+            end
+            --通过大车状态判断运行方向和运行速度
+            if packet[ large_state[1] ]==2 or packet[ large_state[1] ]==4 then  
+                packet[ large_state[3] ] = 1
+            else if packet[ large_state[1] ]==3 or packet[ large_state[1] ]==5 then
+                packet[ large_state[3] ] = 0
+            end
+            if packet[ large_state[1] ]==2 or packet[ large_state[1] ]==3 then  
+                packet[ large_state[4] ] = 0
+            else if packet[ large_state[1] ]==4 or packet[ large_state[1] ]==5 then
+                packet[ large_state[4] ] = 1
+            end
+            --解析大车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
+            for i=0,2 do
+                local m = bit.band(getnumber(19),bit.lshift(1,(5+i))  --大车-正转限位 反转限位 抱闸反馈
+                if m==0 then
+                  packet[ large_state[5+i] ] = 0
+                else
+                  packet[ large_state[5+i] ] = 1
+                end
+            end
+            for i=1,18,1 do  
+                packet[ large_state[8+i] ] = (bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2))/large_state_dot[i] --行程、位置信息、....、散热器温度  
+            end
 
-            packet[ 'large'] = 123
         end  --大if判断最后的结束end
 
         --和校验
