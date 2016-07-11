@@ -633,230 +633,230 @@ function _M.decode(payload)
             end --副钩结束end
 
         ----------------------------------起重主监控数据--------------------------------------
-      elseif func == 0x00 then
-          packet[ cmds[3] ] = 'func-crane'
+        elseif func == 0x00 then
+            packet[ cmds[3] ] = 'func-crane'
 
-          packet["cranetype"] = bit.lshift(getnumber(14),8) + getnumber(15) --0：3机构:1：4机构:2：5机构  
+            packet["cranetype"] = bit.lshift(getnumber(14),8) + getnumber(15) --0：3机构:1：4机构:2：5机构  
 
-          packet[crane_state[45]] = bit.lshift(getnumber(20),8)+getnumber(21)    --整机状态
-          if((bit.lshift(getnumber(22),8)+getnumber(23))>0) then
-             packet[crane_state[45]] = 2                                         --整机状态
-          end
+            packet[ crane_state[45] ] = bit.lshift(getnumber(20),8)+getnumber(21)    --整机状态
+            if((bit.lshift(getnumber(22),8)+getnumber(23))>0) then
+               packet[ crane_state[45] ] = 2                                         --整机状态
+            end
 
-          local liftstate = bit.lshift(getnumber(26),8)+getnumber(27)                    --主起升机构状态
-          if(liftstate>0 and liftstate<5 ) then
-            packet[crane_state[46]] = 1
-          else 
-            packet[crane_state[46]] = 0
-          end
-          if((bit.lshift(getnumber(28),8)+getnumber(29))>0)
-             packet[crane_state[46]] = 2                                         --主起升机构状态
-          end
-          packet[crane_state[35]] = bit.lshift(getnumber(30),8)+getnumber(31)   --主钩状态-控制方式
-          packet[crane_state[37]] = (bit.lshift(getnumber(34),8)+getnumber(35))/100    --主钩状态-离地高度
-          packet[crane_state[44]] = (bit.lshift(getnumber(36),8)+getnumber(37))/100    --主钩状态-钩载显示
-          if(packet[crane_state[35]]>0) then
-            packet[crane_state[39]] = bit.lshift(getnumber(38),8)+getnumber(39)   --主钩状态-变频器状态
-            packet[crane_state[43]] = bit.lshift(getnumber(40),8)+getnumber(41)    --主钩状态-故障代码  
-          end
-          --通过起升状态判断运行方向和运行速度
-          if liftstate==1 or liftstate==2 then  
-              packet[ crane_state[36]] = 1
-          elseif liftstate==3 or liftstate==4 then
-              packet[ crane_state[36] ] = 0
-          end
-          if liftstate==1 or liftstate==3 then  
-              packet[ crane_state[38] ] = 0
-          elseif liftstate=2 or liftstate==4 then
-              packet[ crane_state[38] ] = 1
-          end
-          --解析主起升数字量输入 bit4 5 13对应上下限位 抱闸反馈状态
-          local input = bit.lshift(getnumber(32),8) + getnumber(33) 
-          for i=0,1 do
-              local m = bit.band( input,bit.lshift(1,(4+i)) )  --主钩-上 下限位
-              if m==0 then
-                packet[ crane_state[40+i] ] = 0
-              else
-                packet[ crane_state[40+i] ] = 1
-              end
-          end
-          local m = bit.band(input,bit.lshift(1,13))  --主钩-抱闸状态
-          if m==0 then
-            packet[ crane_state[42] ] = 0
-          else
-            packet[ crane_state[42] ] = 1
-          end
-          
-          if packet["cranetype"]>0 then
-              local viceliftstate = bit.lshift(getnumber(62),8)+getnumber(63)                    --副起升机构状态
-              if(viceliftstate>0 and viceliftstate<5 ) then
-                packet[ crane_state[47] ] = 1
-              else 
-                packet[ crane_state[47] ] = 0
-              end
-              if((bit.lshift(getnumber(64),8)+getnumber(65))>0)
-                 packet[ crane_state[47] ] = 2                                         --副起升机构状态
-              end 
-              packet[ crane_state[25] ] = bit.lshift(getnumber(66),8)+getnumber(67)  --副钩状态-控制方式
-              packet[ crane_state[27] ] = (bit.lshift(getnumber(70),8)+getnumber(71))/100  --副钩状态-离地高度
-              packet[ crane_state[34] ] = (bit.lshift(getnumber(72),8)+getnumber(73))/100    --副钩状态-钩载显示
-              if(packet[ crane_state[25] ]>0) then
-                packet[ crane_state[29] ] = bit.lshift(getnumber(74),8)+getnumber(75)   --副钩状态-变频器状态
-                packet[ crane_state[33] ] = bit.lshift(getnumber(76),8)+getnumber(77)    --副钩状态-故障代码
-              end
-              --通过起升状态判断运行方向和运行速度
-              if viceliftstate==1 or viceliftstate==2 then  
-                  packet[ crane_state[26]] = 1
-              elseif viceliftstate==3 or viceliftstate==4 then
-                  packet[ crane_state[26] ] = 0
-              end
-              if viceliftstate==1 or viceliftstate==3 then  
-                  packet[ crane_state[28] ] = 0
-              elseif viceliftstate=2 or viceliftstate==4 then
-                  packet[ crane_state[28] ] = 1
-              end
-              --解析副钩数字量输入 bit4 5 13对应上下限位 抱闸反馈状态
-              local input = bit.lshift(getnumber(68),8) + getnumber(69) 
-              for i=0,1 do
-                  local m = bit.band( input,bit.lshift(1,(4+i)) )  --副钩-上 下限位
-                  if m==0 then
-                    packet[ crane_state[30+i] ] = 0
-                  else
-                    packet[ crane_state[30+i] ] = 1
-                  end
-              end
-              local m = bit.band(input,bit.lshift(1,13))  --副钩-抱闸状态
-              if m==0 then
-                packet[ crane_state[32] ] = 0
-              else
-                packet[ crane_state[32] ] = 1
-              end
-          end --副钩end
+            local liftstate = bit.lshift(getnumber(26),8)+getnumber(27)                    --主起升机构状态
+            if(liftstate>0 and liftstate<5 ) then
+              packet[ crane_state[46] ] = 1
+            else 
+              packet[ crane_state[46] ] = 0
+            end
+            if((bit.lshift(getnumber(28),8)+getnumber(29))>0)
+               packet[ crane_state[46] ] = 2                                         --主起升机构状态
+            end
+            packet[ crane_state[35] ] = bit.lshift(getnumber(30),8)+getnumber(31)   --主钩状态-控制方式
+            packet[ crane_state[37] ] = (bit.lshift(getnumber(34),8)+getnumber(35))/100    --主钩状态-离地高度
+            packet[ crane_state[44] ] = (bit.lshift(getnumber(36),8)+getnumber(37))/100    --主钩状态-钩载显示
+            if(packet[ crane_state[35] ]>0) then
+              packet[ crane_state[39] ] = bit.lshift(getnumber(38),8)+getnumber(39)   --主钩状态-变频器状态
+              packet[ crane_state[43] ] = bit.lshift(getnumber(40),8)+getnumber(41)    --主钩状态-故障代码  
+            end
+            --通过起升状态判断运行方向和运行速度
+            if liftstate==1 or liftstate==2 then  
+                packet[ crane_state[36] ] = 1
+            elseif liftstate==3 or liftstate==4 then
+                packet[ crane_state[36] ] = 0
+            end
+            if liftstate==1 or liftstate==3 then  
+                packet[ crane_state[38] ] = 0
+            elseif liftstate=2 or liftstate==4 then
+                packet[ crane_state[38] ] = 1
+            end
+            --解析主起升数字量输入 bit4 5 13对应上下限位 抱闸反馈状态
+            local input = bit.lshift(getnumber(32),8) + getnumber(33) 
+            for i=0,1 do
+                local m = bit.band(input,bit.lshift(1,(4+i)))  --主钩-上 下限位
+                if m==0 then
+                  packet[ crane_state[40+i] ] = 0
+                else
+                  packet[ crane_state[40+i] ] = 1
+                end
+            end
+            local m = bit.band(input,bit.lshift(1,13))  --主钩-抱闸状态
+            if m==0 then
+              packet[ crane_state[42] ] = 0
+            else
+              packet[ crane_state[42] ] = 1
+            end
+            
+            if packet["cranetype"]>0 then
+                local viceliftstate = bit.lshift(getnumber(62),8)+getnumber(63)                    --副起升机构状态
+                if(viceliftstate>0 and viceliftstate<5 ) then
+                  packet[ crane_state[47] ] = 1
+                else 
+                  packet[ crane_state[47] ] = 0
+                end
+                if((bit.lshift(getnumber(64),8)+getnumber(65))>0)
+                   packet[ crane_state[47] ] = 2                                         --副起升机构状态
+                end 
+                packet[ crane_state[25] ] = bit.lshift(getnumber(66),8)+getnumber(67)  --副钩状态-控制方式
+                packet[ crane_state[27] ] = (bit.lshift(getnumber(70),8)+getnumber(71))/100  --副钩状态-离地高度
+                packet[ crane_state[34] ] = (bit.lshift(getnumber(72),8)+getnumber(73))/100    --副钩状态-钩载显示
+                if(packet[ crane_state[25] ]>0) then
+                  packet[ crane_state[29] ] = bit.lshift(getnumber(74),8)+getnumber(75)   --副钩状态-变频器状态
+                  packet[ crane_state[33] ] = bit.lshift(getnumber(76),8)+getnumber(77)    --副钩状态-故障代码
+                end
+                --通过起升状态判断运行方向和运行速度
+                if viceliftstate==1 or viceliftstate==2 then  
+                    packet[ crane_state[26] ] = 1
+                elseif viceliftstate==3 or viceliftstate==4 then
+                    packet[ crane_state[26] ] = 0
+                end
+                if viceliftstate==1 or viceliftstate==3 then  
+                    packet[ crane_state[28] ] = 0
+                elseif viceliftstate=2 or viceliftstate==4 then
+                    packet[ crane_state[28] ] = 1
+                end
+                --解析副钩数字量输入 bit4 5 13对应上下限位 抱闸反馈状态
+                local input = bit.lshift(getnumber(68),8) + getnumber(69) 
+                for i=0,1 do
+                    local m = bit.band(input,bit.lshift(1,(4+i)))  --副钩-上 下限位
+                    if m==0 then
+                      packet[ crane_state[30+i] ] = 0
+                    else
+                      packet[ crane_state[30+i] ] = 1
+                    end
+                end
+                local m = bit.band(input,bit.lshift(1,13))  --副钩-抱闸状态
+                if m==0 then
+                  packet[ crane_state[32] ] = 0
+                else
+                  packet[ crane_state[32] ] = 1
+                end
+            end --副钩end
 
-          local small1state = bit.lshift(getnumber(42),8)+getnumber(43)                    --小车1机构状态
-          if(small1state>1) then
-            packet[crane_state[48]] = 1
-          else 
-            packet[crane_state[48]] = 0
-          end
-          if((bit.lshift(getnumber(88),8)+getnumber(89))>0)
-             packet[crane_state[48]] = 2                                         --小车1机构状态
-          end 
+            local small1state = bit.lshift(getnumber(42),8)+getnumber(43)                    --小车1机构状态
+            if(small1state>1) then
+              packet[crane_state[48]] = 1
+            else 
+              packet[crane_state[48]] = 0
+            end
+            if((bit.lshift(getnumber(88),8)+getnumber(89))>0)
+               packet[crane_state[48]] = 2                                         --小车1机构状态
+            end 
 
-          --通过小车状态判断运行方向和运行速度
-          if small1state==2 or small1state==4 then  
-              packet[ crane_state[17] ] = 1
-          elseif small1state==3 or small1state==5 then
-              packet[ crane_state[17] ] = 0
-          end
-          if small1state==2 or small1state==3 then  
-              packet[ crane_state[19] ] = 0
-          elseif small1state==4 or small1state==5 then
-              packet[ crane_state[19] ] = 1
-          end
+            --通过小车状态判断运行方向和运行速度
+            if small1state==2 or small1state==4 then  
+                packet[ crane_state[17] ] = 1
+            elseif small1state==3 or small1state==5 then
+                packet[ crane_state[17] ] = 0
+            end
+            if small1state==2 or small1state==3 then  
+                packet[ crane_state[19] ] = 0
+            elseif small1state==4 or small1state==5 then
+                packet[ crane_state[19] ] = 1
+            end
 
-          --解析小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
-          for i=0,2 do
-              local m = bit.band(getnumber(45),bit.lshift(1,(5+i)))  --小车-正转限位 反转限位 抱闸反馈
-              if m==0 then
-                packet[ crane_state[21+i] ] = 0
-              else
-                packet[ crane_state[21+i] ] = 1
-              end
-          end
+            --解析小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
+            for i=0,2 do
+                local m = bit.band(getnumber(45),bit.lshift(1,(5+i)))  --小车-正转限位 反转限位 抱闸反馈
+                if m==0 then
+                  packet[ crane_state[21+i] ] = 0
+                else
+                  packet[ crane_state[21+i] ] = 1
+                end
+            end
 
-          packet[crane_state[18]] = (bit.lshift(getnumber(46),8)+getnumber(47))/100--小车1状态-位置信息
-          packet[crane_state[20]] = bit.lshift(getnumber(50),8)+getnumber(51) --小车1状态-变频器状态
-          packet[crane_state[24]] = bit.lshift(getnumber(48),8)+getnumber(49) --小车1状态-故障代码            
-           
-          if packet["cranetype"]>1 then 
-              local small2state = bit.lshift(getnumber(78),8)+getnumber(79)                    --小车2机构状态
-              if(small2state>1) then
-                packet[crane_state[49]] = 1
-              else 
-                packet[crane_state[49]] = 0
-              end
-              if((bit.lshift(getnumber(90),8)+getnumber(91))>0)
-                 packet[crane_state[49]] = 2                                         --小车2机构状态
-              end  
+            packet[ crane_state[18] ] = (bit.lshift(getnumber(46),8)+getnumber(47))/100--小车1状态-位置信息
+            packet[ crane_state[20] ] = bit.lshift(getnumber(50),8)+getnumber(51) --小车1状态-变频器状态
+            packet[ crane_state[24] ] = bit.lshift(getnumber(48),8)+getnumber(49) --小车1状态-故障代码            
+             
+            if packet["cranetype"]>1 then 
+                local small2state = bit.lshift(getnumber(78),8)+getnumber(79)                    --小车2机构状态
+                if(small2state>1) then
+                  packet[ crane_state[49] ] = 1
+                else 
+                  packet[ crane_state[49] ] = 0
+                end
+                if((bit.lshift(getnumber(90),8)+getnumber(91))>0)
+                   packet[ crane_state[49] ] = 2                                         --小车2机构状态
+                end  
 
-              --通过小车状态判断运行方向和运行速度
-              if small2state==2 or small2state==4 then  
-                  packet[ crane_state[9] ] = 1
-              elseif small2state==3 or small2state==5 then
-                  packet[ crane_state[9] ] = 0
-              end
-              if small2state==2 or small2state==3 then  
-                  packet[ crane_state[11] ] = 0
-              elseif small2state==4 or small2state==5 then
-                  packet[ crane_state[11] ] = 1
-              end
+                --通过小车状态判断运行方向和运行速度
+                if small2state==2 or small2state==4 then  
+                    packet[ crane_state[9] ] = 1
+                elseif small2state==3 or small2state==5 then
+                    packet[ crane_state[9] ] = 0
+                end
+                if small2state==2 or small2state==3 then  
+                    packet[ crane_state[11] ] = 0
+                elseif small2state==4 or small2state==5 then
+                    packet[ crane_state[11] ] = 1
+                end
 
-              --解析小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
-              for i=0,2 do
-                  local m = bit.band(getnumber(81),bit.lshift(1,(5+i)))  --小车-正转限位 反转限位 抱闸反馈
-                  if m==0 then
-                    packet[ crane_state[13+i] ] = 0
-                  else
-                    packet[ crane_state[13+i] ] = 1
-                  end
-              end
+                --解析小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
+                for i=0,2 do
+                    local m = bit.band(getnumber(81),bit.lshift(1,(5+i)))  --小车-正转限位 反转限位 抱闸反馈
+                    if m==0 then
+                      packet[ crane_state[13+i] ] = 0
+                    else
+                      packet[ crane_state[13+i] ] = 1
+                    end
+                end
 
-              packet[crane_state[10]] = (bit.lshift(getnumber(82),8)+getnumber(83))/100 --小车2状态-位置信息
-              packet[crane_state[12]] = bit.lshift(getnumber(86),8)+getnumber(87) --小车2状态-变频器状态
-              packet[crane_state[16]] = bit.lshift(getnumber(84),8)+getnumber(85) --小车2状态-故障代码 
-          end
+                packet[ crane_state[10] ] = (bit.lshift(getnumber(82),8)+getnumber(83))/100 --小车2状态-位置信息
+                packet[ crane_state[12] ] = bit.lshift(getnumber(86),8)+getnumber(87) --小车2状态-变频器状态
+                packet[ crane_state[16] ] = bit.lshift(getnumber(84),8)+getnumber(85) --小车2状态-故障代码 
+            end
 
-          local largestate = bit.lshift(getnumber(52),8)+getnumber(53)                    --大车机构状态
-          if(largestate>1) then
-            packet[crane_state[50]] = 1
-          else 
-            packet[crane_state[50]] = 0
-          end
-          if((bit.lshift(getnumber(92),8)+getnumber(93))>0)
-             packet[crane_state[50]] = 2                                         --大车机构状态
-          end 
+            local largestate = bit.lshift(getnumber(52),8)+getnumber(53)                    --大车机构状态
+            if(largestate>1) then
+              packet[ crane_state[50] ] = 1
+            else 
+              packet[ crane_state[50] ] = 0
+            end
+            if((bit.lshift(getnumber(92),8)+getnumber(93))>0)
+               packet[ crane_state[50] ] = 2                                         --大车机构状态
+            end 
 
-          --通过大车状态判断运行方向和运行速度
-          if largestate==2 or largestate==4 then  
-              packet[ crane_state[1] ] = 1
-          elseif largestate==3 or largestate==5 then
-              packet[ crane_state[1] ] = 0
-          end
-          if largestate==2 or largestate==3 then  
-              packet[ crane_state[3] ] = 0
-          elseif largestate==4 or largestate==5 then
-              packet[ crane_state[3] ] = 1
-          end
+            --通过大车状态判断运行方向和运行速度
+            if largestate==2 or largestate==4 then  
+                packet[ crane_state[1] ] = 1
+            elseif largestate==3 or largestate==5 then
+                packet[ crane_state[1] ] = 0
+            end
+            if largestate==2 or largestate==3 then  
+                packet[ crane_state[3] ] = 0
+            elseif largestate==4 or largestate==5 then
+                packet[ crane_state[3] ] = 1
+            end
 
-          --解析小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
-          for i=0,2 do
-              local m = bit.band(getnumber(55),bit.lshift(1,(5+i)))  --大车-正转限位 反转限位 抱闸反馈
-              if m==0 then
-                packet[ crane_state[5+i] ] = 0
-              else
-                packet[ crane_state[5+i] ] = 1
-              end
-          end
+            --解析小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
+            for i=0,2 do
+                local m = bit.band(getnumber(55),bit.lshift(1,(5+i)))  --大车-正转限位 反转限位 抱闸反馈
+                if m==0 then
+                  packet[ crane_state[5+i] ] = 0
+                else
+                  packet[ crane_state[5+i] ] = 1
+                end
+            end
 
-          packet[crane_state[2]] = (bit.lshift(getnumber(56),8)+getnumber(57))/100  --大车状态-位置信息
-          packet[crane_state[4]] = bit.lshift(getnumber(60),8)+getnumber(61)  --大车状态-变频器状态
-          packet[crane_state[8]] = bit.lshift(getnumber(58),8)+getnumber(59)  --大车状态-故障代码 
+            packet[ crane_state[2] ] = (bit.lshift(getnumber(56),8)+getnumber(57))/100  --大车状态-位置信息
+            packet[ crane_state[4] ] = bit.lshift(getnumber(60),8)+getnumber(61)  --大车状态-变频器状态
+            packet[ crane_state[8] ] = bit.lshift(getnumber(58),8)+getnumber(59)  --大车状态-故障代码 
 
-          if((bit.lshift(getnumber(12),8)+getnumber(13))==4) then  --电源状态
-              packet[crane_state[51]] = 1
-          else 
-              packet[crane_state[51]] = 0
-          end
-          --解析系统输入 bit0 1 2 3 4启动 复位 急停相序错误 主接触器
-          for i=0,4 do
-              local m = bit.band(getnumber(17),bit.lshift(1,i))
-              if m==0 then
-                packet[crane_state[52+i]] = 0
-              else
-                packet[crane_state[52+i]] = 1
-              end
-          end
+            if((bit.lshift(getnumber(12),8)+getnumber(13))==4) then  --电源状态
+                packet[ crane_state[51] ] = 1
+            else 
+                packet[ crane_state[51] ] = 0
+            end
+            --解析系统输入 bit0 1 2 3 4启动 复位 急停相序错误 主接触器
+            for i=0,4 do
+                local m = bit.band(getnumber(17),bit.lshift(1,i))
+                if m==0 then
+                  packet[ crane_state[52+i] ] = 0
+                else
+                  packet[ crane_state[52+i] ] = 1
+                end
+            end
          ------------------------------------------------   
         end  --判断数据类型最后的结束end
 
