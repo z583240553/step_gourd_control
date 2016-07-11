@@ -492,6 +492,43 @@ function _M.decode(payload)
                   packet[ small1_state[8+i] ] = string.format(parastrformat,paranum)
                 end
             end
+
+            if packet[ 'cranetype' ] >1 then   --5机构 有2号小车
+                for i=1,2,1 do  
+                    packet[ small2_state[i] ] =  bit.lshift(getnumber(58+i*2),8) + getnumber(59+i*2) --状态、故障   
+                end
+                
+                --通过小状态判断运行方向和运行速度
+                if packet[ small2_state[1] ]==2 or packet[ small2_state[1] ]==4 then  
+                    packet[ small2_state[3] ] = 1
+                elseif packet[ small2_state[1] ]==3 or packet[ small2_state[1] ]==5 then
+                    packet[ small2_state[3] ] = 0
+                end
+                if packet[ small2_state[1] ]==2 or packet[ small2_state[1] ]==3 then  
+                    packet[ small2_state[4] ] = 0
+                elseif packet[ small2_state[1] ]==4 or packet[ small2_state[1] ]==5 then
+                    packet[ small2_state[4] ] = 1
+                end
+                
+                --解析2号小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
+                for i=0,2 do
+                    local m = bit.band(getnumber(67),bit.lshift(1,(5+i)))  --小车-正转限位 反转限位 抱闸反馈
+                    if m==0 then
+                      packet[ small2_state[5+i] ] = 0
+                    else
+                      packet[ small2_state[5+i] ] = 1
+                    end
+                end
+              
+                for i=1,18,1 do  
+                    local dot = small2_dot[ small2_state[8+i] ]
+                    if dot >=0 then
+                      local paranum = (bit.lshift(getnumber(68+i*2),8) + getnumber(69+i*2)) / ( 10^dot )
+                      local parastrformat = "%0."..dot.."f"
+                      packet[ small2_state[8+i] ] = string.format(parastrformat,paranum)
+                    end
+                end
+            end --2号小车结束end
             
         end  --判断数据类型最后的结束end
 
