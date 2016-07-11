@@ -169,28 +169,11 @@ local large_state = {
   [25] = "large_outpower",         --大车的输出功率
   [26] = "large_temp",             --大车的散热器温度
 }
-
-local large_state_dot = {
-  [1] = 100,              --大车的大车行程小数位数
-  [2] = 100,         --大车的位置信息小数位数
-  [3] = 1,        --大车的实时脉冲数小数位数
-  [4] = 100           --大车的刹车距离小数位数
-  [5] = 10,         --大车的电机电流小数位数
-  [6] = 10,        --大车的电机电压小数位数
-  [7] = 1,           --大车的抱闸次数小数位数
-  [8] = 1,         --大车的电机运行时间小数位数
-  [9] = 10,         --大车的抱闸运行时间小数位数
-  [10] = 100,            --大车的有功功率小数位数
-  [11] = 100,           --大车的目标频率小数位数
-  [12] = 100,           --大车的反馈频率小数位数
-  [13] = 100,           --大车的输出电流小数位数
-  [14] = 10,          --大车的输出电压小数位数
-  [15] = 1,          --大车的母线电压小数位数
-  [16] = 10,          --大车的输出转矩小数位数
-  [17] = 100,         --大车的输出功率小数位数
-  [18] = 10,             --大车的散热器温度小数位数
+local large_dot = {
+["large_trip"]=2,["large_position"]=2,["large_realpulse"]=0,["large_brkdis"]=2,["large_motorcur"]=1,["large_motorvolt"]=1,
+["large_bfknum"]=0,["large_mruntime"]=0,["large_bruntime"]=1,["large_power"]=2,["large_givfrq"]=2,["large_fdkfrq"]=2,
+["large_outcur"]=2,["large_outvolt"]=1,["large_busvolt"]=0,["large_outtorq"]=1,["large_outpower"]=2,["large_temp"]=1,
 }
-
 -----------------------------------控制器页面json--------------------------------------
 local ctrl_state = {}
 for i=1,10,1 do
@@ -457,8 +440,15 @@ function _M.decode(payload)
             end
           
             for i=1,18,1 do  
-                packet[ large_state[8+i] ] = bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)--行程、位置信息、....、散热器温度  
+                local dot = large_dot[ large_state[8+i] ]
+                if dot >=0 then
+                  local paranum = (bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)) / ( 10^dot )
+                  local parastrformat = "%0."..dot.."f"
+                  packet[ large_state[8+i] ] = string.format(parastrformat,paranum)
+                end
             end
+             --   packet[ large_state[8+i] ] = bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)--行程、位置信息、....、散热器温度  
+            
 
             
         end  --大if判断最后的结束end
