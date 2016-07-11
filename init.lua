@@ -634,6 +634,7 @@ function _M.decode(payload)
 
         ----------------------------------起重主监控数据--------------------------------------
         elseif func == 0x00 then
+          --[[
             packet[ cmds[3] ] = 'func-crane'
 
             packet["cranetype"] = bit.lshift(getnumber(14),8) + getnumber(15) --0：3机构:1：4机构:2：5机构  
@@ -735,12 +736,12 @@ function _M.decode(payload)
 
             local small1state = bit.lshift(getnumber(42),8)+getnumber(43)                    --小车1机构状态
             if(small1state>1) then
-              packet[crane_state[48]] = 1
+              packet[ crane_state[48] ] = 1
             else 
-              packet[crane_state[48]] = 0
+              packet[ crane_state[48] ] = 0
             end
             if((bit.lshift(getnumber(88),8)+getnumber(89))>0)
-               packet[crane_state[48]] = 2                                         --小车1机构状态
+               packet[ crane_state[48] ] = 2                                         --小车1机构状态
             end 
 
             --通过小车状态判断运行方向和运行速度
@@ -857,6 +858,7 @@ function _M.decode(payload)
                   packet[ crane_state[52+i] ] = 1
                 end
             end
+            ]]
          ------------------------------------------------   
         end  --判断数据类型最后的结束end
 
