@@ -635,7 +635,7 @@ function _M.decode(payload)
 
         ----------------------------------起重主监控数据--------------------------------------
         elseif func == 0x00 then
-          --[[
+          
             packet[ cmds[3] ] = 'func-crane'
 
             packet["cranetype"] = bit.lshift(getnumber(14),8) + getnumber(15) --0：3机构:1：4机构:2：5机构  
@@ -859,7 +859,7 @@ function _M.decode(payload)
                   packet[ crane_state[52+i] ] = 1
                 end
             end
-            ]]
+          
          ------------------------------------------------   
         end  --判断数据类型最后的结束end
 
