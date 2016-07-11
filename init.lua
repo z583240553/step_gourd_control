@@ -433,7 +433,7 @@ function _M.decode(payload)
             for i=1,2,1 do  
                 packet[ large_state[i] ] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
             end
-            --[[
+            
             --通过大车状态判断运行方向和运行速度
             if packet[ large_state[1] ]==2 or packet[ large_state[1] ]==4 then  
                 packet[ large_state[3] ] = 1
@@ -445,7 +445,7 @@ function _M.decode(payload)
             elseif packet[ large_state[1] ]==4 or packet[ large_state[1] ]==5 then
                 packet[ large_state[4] ] = 1
             end
-
+            --[[
             --解析大车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
             for i=0,2 do
                 local m = bit.band(getnumber(19),bit.lshift(1,(5+i))  --大车-正转限位 反转限位 抱闸反馈
