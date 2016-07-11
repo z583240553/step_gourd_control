@@ -170,8 +170,9 @@ local large_state = {
   [26] = "large_temp",             --大车的散热器温度
 }
 ]]
---[[
+
 -----------------------------------控制器页面json--------------------------------------
+local ctrl_state = {}
 for j=1,10,1 do
   ctrl_state[i] = "ctrl_x0"..(i-1)  --X00、、X09
 end
@@ -205,9 +206,6 @@ end
 for j=1,4,1 do
   ctrl_state[54+i] = "ctrl_y7"..(i-1) --Y70、、Y73
 end
-]]
-
-
 local ctrl_state ={
   [59] = "ctrl_cranetype",        --起重机类型
   [60] = "ctrl_weight",           --称重吨位
@@ -215,10 +213,7 @@ local ctrl_state ={
   [62] = "ctrl_warn",             --称重预警值
   [63] = "ctrl_alarm",            --称重报警值
 }
-local fault_cmds = {}
-for j=1,5,1 do
-  fault_cmds[j] = "fault"..j.."ab" 
-end
+
 --[[
 -----------------------------------起重主监控页面json--------------------------------------
 local crane_state = {
@@ -343,10 +338,7 @@ function _M.decode(payload)
 
     local head1 = getnumber(1)
     local head2 = getnumber(2)
-    packet['test0'] = 'in'
     if ( head1 == 0x3B and head2 == 0x31 ) then 
-         packet['test1'] = 'head ok'
-      
         local templen = bit.lshift( getnumber(3) , 8 ) + getnumber(4) --收到的数据长度
         --templen will be the important parameter in the next calculate
         --in different task some number mabey be changed 
@@ -354,26 +346,63 @@ function _M.decode(payload)
         --packet[ cmds[0] ] = templen
         packet[ cmds[1] ] = bit.lshift( getnumber(5) , 8 ) + bit.lshift( getnumber(6) , 16 ) + bit.lshift( getnumber(7) , 8 ) + getnumber(8)
 
-        local func = getnumber(10)  --数据类型功能码  
-        packet['func'] = func
+        local func = getnumber(10)  --数据类型功能码 
         if func == 0x01 then
 
             packet[ cmds[3] ] = 'func-controller'
             FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
 
+            --解析每位bit
+            for i=0,2 do
+                for j=0,9 do    --X00组 X10组 X20组
+                    local m = bit.band((bit.lshift(getnumber(12+i*2),8)+getnumber(13+i*2)),bit.lshift(1,i))
+                    if m==0 then
+                      packet[ctrl_state[j+1+i*10]] = 0
+                    else
+                      packet[ctrl_state[j+1+i*10]] = 1
+                    end  
+                end
+            end
             for j=0,1 do    --X30组
                 local m = bit.band(getnumber(33),bit.lshift(1,j))
                 if m==0 then
-                  packet[ fault_cmds[4+j] ] = 0
+                  packet[ctrl_state[31+j]] = 0
                 else
-                  packet[ fault_cmds[4+j] ] = 1
+                  packet[ctrl_state[31+j]] = 1
                 end  
             end
-
-            
+            for i=0,2 do    --X50组 X60组 X70组
+                for j=0,1 do    
+                    local m = bit.band(getnumber(19+i*2),bit.lshift(1,j))
+                    if m==0 then
+                      packet[ctrl_state[33+j+i*2]] = 0
+                    else
+                      packet[ctrl_state[33+j+i*2]] = 1
+                    end  
+                end
+            end
+            for j=0,7 do     --K0组
+                local m = bit.band((bit.lshift(getnumber(24),8)+getnumber(25)),bit.lshift(1,j))
+                if m==0 then
+                  packet[ctrl_state[39+j]] = 0
+                else
+                  packet[ctrl_state[39+j]] = 1
+                end  
+            end
+            for i=0,2 do    --Y50组 Y60组 Y70组
+                for j=0,3 do    
+                    local m = bit.band(getnumber(27+i*2),bit.lshift(1,j))
+                    if m==0 then
+                      packet[ctrl_state[47+j+i*4]] = 0
+                    else
+                      packet[ctrl_state[47+j+i*4]] = 1
+                    end  
+                end
+            end
             for i=0,4,1 do  
                 packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
+
             --和校验
             for i=1,43,1 do        
               table.insert(FCS_Array,getnumber(i))
