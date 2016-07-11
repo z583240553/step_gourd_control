@@ -17,7 +17,6 @@ local cmds = {
   [4] = "device_address"
 }
 --  "cranetype",             --起重机类型
---[[
 -----------------------------------起升页面json--------------------------------------
 local main_state = {
   [1] = "main_state",             --主钩的机构状态
@@ -25,26 +24,26 @@ local main_state = {
   [3] = "main_ctrlmode",          --主钩的控制方式
   [4] = "main_rundir",            --主钩的运行方向
   [5] = "main_runspd",            --主钩的运行速度
-  [6] = "main_uplimit",          --主钩的上限位
-  [7] = "main_downlimit",        --主钩的下限位
-  [8] = "main_hotfdk",           --主钩的热继反馈
+  [6] = "main_motorhot",           --主钩的电机过热
+  [7] = "main_uplimit",          --主钩的上限位
+  [8] = "main_downlimit",        --主钩的下限位
   [9] = "main_forfdk",           --主钩的正转反馈
   [10] = "main_revfdk",           --主钩的反转反馈
   [11] = "main_hsfdk",            --主钩的高速反馈
   [12] = "main_lsfdk",            --主钩的低速反馈
-  [13] = "main_l/hdelay",         --主钩的低/高延迟
-  [14] = "main_h/ldelay",         --主钩的高/低延迟
-  [15] = "main_liftheight",       --主钩的起升高度
-  [16] = "main_height",            --主钩的离地高度
-  [17] = "main_realpulse",        --主钩的实时脉冲数
-  [18] = "main_brkdis",           --主钩的刹车距离
-  [19] = "main_motorcur",         --主钩的电机电流
-  [20] = "main_motorvolt",        --主钩的电机电压
-  [21] = "main_bfknum",           --主钩的刹车次数
-  [22] = "main_mruntime",         --主钩的电机运行时间
-  [23] = "main_bruntime",         --主钩的抱闸运行时间
-  [24] = "main_power",            --主钩的有功功率
-  [25] = "main_mefficiency",      --主钩的电机效率
+  [13] = "main_liftheight",       --主钩的起升高度
+  [14] = "main_height",            --主钩的离地高度
+  [15] = "main_realpulse",        --主钩的实时脉冲数
+  [16] = "main_brkdis",           --主钩的刹车距离
+  [17] = "main_motorcur",         --主钩的电机电流
+  [18] = "main_motorvolt",        --主钩的电机电压
+  [19] = "main_bfknum",           --主钩的刹车次数
+  [20] = "main_mruntime",         --主钩的电机运行时间
+  [21] = "main_bruntime",         --主钩的抱闸运行时间
+  [22] = "main_power",            --主钩的有功功率
+  [23] = "main_mefficiency",      --主钩的电机效率
+  [24] = "main_l/hdelay",         --主钩的低/高延迟 加速
+  [25] = "main_h/ldelay",         --主钩的高/低延迟 减速
   [26] = "main_hook",              --主钩的钩载显示
   [27] = "main_warn",              --主钩的预警值
   [28] = "main_alarm",             --主钩的报警值
@@ -55,31 +54,30 @@ local vice_state = {
   [3] = "vice_ctrlmode",          --副钩的控制方式
   [4] = "vice_rundir",            --副钩的运行方向
   [5] = "vice_runspd",            --副钩的运行速度
-  [6] = "vice_uplimit",          --副钩的上限位
-  [7] = "vice_downlimit",        --副钩的下限位
-  [8] = "vice_hotfdk",           --副钩的热继反馈
+  [6] = "vice_motorhot",           --副钩的电机过热
+  [7] = "vice_uplimit",          --副钩的上限位
+  [8] = "vice_downlimit",        --副钩的下限位
   [9] = "vice_forfdk",           --副钩的正转反馈
   [10] = "vice_revfdk",           --副钩的反转反馈
   [11] = "vice_hsfdk",            --副钩的高速反馈
   [12] = "vice_lsfdk",            --副钩的低速反馈
-  [13] = "vice_l/hdelay",         --副钩的低/高延迟
-  [14] = "vice_h/ldelay",         --副钩的高/低延迟
-  [15] = "vice_liftheight",       --副钩的起升高度
-  [16] = "vice_height",           --副钩的离地高度
-  [17] = "vice_realpulse",        --副钩的实时脉冲数
-  [18] = "vice_brkdis",           --副钩的刹车距离
-  [19] = "vice_motorcur",         --副钩的电机电流
-  [20] = "vice_motorvolt",        --副钩的电机电压
-  [21] = "vice_bfknum",           --副钩的刹车次数
-  [22] = "vice_mruntime",         --副钩的电机运行时间
-  [23] = "vice_bruntime",         --副钩的抱闸运行时间
-  [24] = "vice_power",            --副钩的有功功率
-  [25] = "vice_mefficiency",      --副钩的电机效率
+  [13] = "vice_liftheight",       --副钩的起升高度
+  [14] = "vice_height",           --副钩的离地高度
+  [15] = "vice_realpulse",        --副钩的实时脉冲数
+  [16] = "vice_brkdis",           --副钩的刹车距离
+  [17] = "vice_motorcur",         --副钩的电机电流
+  [18] = "vice_motorvolt",        --副钩的电机电压
+  [19] = "vice_bfknum",           --副钩的刹车次数
+  [20] = "vice_mruntime",         --副钩的电机运行时间
+  [21] = "vice_bruntime",         --副钩的抱闸运行时间
+  [22] = "vice_power",            --副钩的有功功率
+  [23] = "vice_mefficiency",      --副钩的电机效率
+  [24] = "vice_l/hdelay",         --副钩的低/高延迟
+  [25] = "vice_h/ldelay",         --副钩的高/低延迟
   [26] = "vice_hook",              --副钩的钩载显示
   [27] = "vice_warn",              --副钩的预警值
   [28] = "vice_alarm",             --副钩的报警值
 }
-]]
 -----------------------------------小车页面json--------------------------------------
 local small1_state = {
   [1] = "small1_state",             --小车1的机构状态
@@ -361,7 +359,6 @@ function _M.decode(payload)
         ----------------------------控制器数据--------------------------------
         if func == 0x01 then
             packet[ cmds[3] ] = 'func-controller'
-            --FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
            
             --解析每位bit
             for i=0,2 do
@@ -418,7 +415,7 @@ function _M.decode(payload)
             packet[ ctrl_state[61] ] = packet[ ctrl_state[61] ]/1000
         ------------------------------大车数据--------------------------------
         elseif func==0x04 then
-             -- packet[ 'test' ] = 123
+            packet[ cmds[3] ] = 'func-large'
           
             for i=1,2,1 do  
                 packet[ large_state[i] ] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
@@ -456,13 +453,14 @@ function _M.decode(payload)
             end 
         ------------------------------小车数据--------------------------------
         elseif func==0x03 then
+            packet[ cmds[3] ] = 'func-small'
             packet[ 'cranetype' ] = bit.lshift(getnumber(12),8) + getnumber(13)  --起重机类型  
 
             for i=1,2,1 do  
                 packet[ small1_state[i] ] =  bit.lshift(getnumber(12+i*2),8) + getnumber(13+i*2) --状态、故障   
             end
             
-            --通过小状态判断运行方向和运行速度
+            --通过小车状态判断运行方向和运行速度
             if packet[ small1_state[1] ]==2 or packet[ small1_state[1] ]==4 then  
                 packet[ small1_state[3] ] = 1
             elseif packet[ small1_state[1] ]==3 or packet[ small1_state[1] ]==5 then
@@ -529,6 +527,105 @@ function _M.decode(payload)
                     end
                 end
             end --2号小车结束end
+          -------------------起升数据（有无副钩数据由起重机机构来判断）----------------------
+        elseif func == 0x02 then
+            packet[ cmds[3] ] = 'func-lifting'
+        
+            packet["cranetype"] = bit.lshift(getnumber(12),8) + getnumber(13)  --起重机类型
+            --local cranetype = bit.lshift( getnumber(12) , 8 ) + getnumber(13)      --0：3机构:1：4机构:2：5机构
+            for i=1,3,1 do  
+                packet[ main_state[i] ] =  bit.lshift(getnumber(12+i*2),8) + getnumber(13+i*2) --状态、故障、控制方式   
+            end
+            --[[
+            local m = bit.band(getnumber(21),bit.lshift(1,0)) --主钩-运行方向
+            if m~=0 then
+              packet[main_state[4] ] = 1
+            end
+            local m = bit.band(getnumber(21),bit.lshift(1,1))
+            if m~=0 then
+              packet[main_state[4] ] = 0
+            end
+            local m = bit.band(getnumber(21),bit.lshift(1,2))  --主钩-运行速度
+            if m==0 then
+              packet[main_state[5] ] = 0
+            else
+              packet[main_state[5] ] = 1
+            end
+            ]]
+            --通过起升状态判断运行方向和运行速度
+            if packet[ main_state[1] ]==1 or packet[ main_state[1] ]==2 then  
+                packet[ main_state[4] ] = 1
+            elseif packet[ main_state[1] ]==3 or packet[ main_state[1] ]==4 then
+                packet[ main_state[4] ] = 0
+            end
+            if packet[ main_state[1] ]==1 or packet[ main_state[1] ]==3 then  
+                packet[ main_state[5] ] = 0
+            elseif packet[ main_state[1] ]==2 or packet[ main_state[1] ]==4 then
+                packet[ main_state[5] ] = 1
+            end
+            --解析主起升数字量输入 bit3 4 5 7 8 9 10对应电机过热 上 下限位 正转 反转反馈 高速 低速反馈
+            local input = bit.lshift(getnumber(20),8) + getnumber(21) 
+            for i=0,2 do
+                local m = bit.band( input,bit.lshift(1,(3+i)) )  --主钩-电机过热 上 下限位
+                if m==0 then
+                  packet[ main_state[6+i] ] = 0
+                else
+                  packet[ main_state[6+i] ] = 1
+                end
+            end
+            for i=0,3 do
+                local m = bit.band( input,bit.lshift(1,(7+i)) )  --主钩-正转 反转反馈 高速 低速反馈
+                if m==0 then
+                  packet[ main_state[9+i] ] = 0
+                else
+                  packet[ main_state[9+i] ] = 1
+                end
+            end
+
+            for i=1,16,1 do  
+                packet[ main_state[12+i] ] =  bit.lshift( getnumber(22+i*2) , 8 ) + getnumber(23+i*2) --起升高度、离地距离、....、报警值、低高延时、高低延时   
+            end
+            --[[
+            if(cranetype>0) then   --副钩出现 4机构和5机构
+                for i=1,3,1 do  
+                    packet[vice_state[i] ] =  bit.lshift( getnumber(50+i*2) , 8 ) + getnumber(51+i*2) --状态、故障、控制方式   
+                end
+                --解析副起升数字量输入 bit0 1 2 4 5 13对应正转反转高速 正转限位反转限位抱闸状态
+                local m = bit.band(getnumber(59),bit.lshift(1,0)) --副钩-运行方向
+                if m~=0 then
+                  packet[ vice_state[4] ] = 1
+                end
+                local m = bit.band(getnumber(59),bit.lshift(1,1))
+                if m~=0 then
+                  packet[ vice_state[4] ] = 0
+                end
+                local m = bit.band(getnumber(59),bit.lshift(1,2))  --副钩-运行速度
+                if m==0 then
+                  packet[ vice_state[5] ] = 0
+                else
+                  packet[ vice_state[5] ] = 1
+                end
+                for i=0,3 do
+                    local m = bit.band(getnumber(59),bit.lshift(1,(4+i))  --副钩-上限位
+                    if m==0 then
+                      packet[ vice_state[6+i] ] = 0
+                    else
+                      packet[ vice_state[6+i] ] = 1
+                    end
+                end
+                for i=0,4 do
+                    local m = bit.band(getnumber(58),bit.lshift(1,i))  --副钩-反转反馈
+                    if m==0 then
+                      packet[ vice_state[10+i] ] = 0
+                    else
+                      packet[ vice_state[10+i] ] = 1
+                    end
+                end
+                for i=1,14,1 do  
+                    packet[ vice_state[14+i] ] =  bit.lshift( getnumber(60+i*2) , 8 ) + getnumber(61+i*2) --起升高度、离地距离、....、报警值   
+                end
+            end --副钩结束end
+            ]]
             
         end  --判断数据类型最后的结束end
 
