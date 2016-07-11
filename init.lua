@@ -78,6 +78,16 @@ local vice_state = {
   [27] = "vice_warn",              --副钩的预警值
   [28] = "vice_alarm",             --副钩的报警值
 }
+local main_dot = {
+["main_liftheight"]=2,["main_height"]=2,["main_realpulse"]=0,["main_brkdis"]=2,["main_motorcur"]=1,["main_motorvolt"]=1,
+["main_bfknum"]=0,["main_mruntime"]=0,["main_bruntime"]=1,["main_power"]=2,["main_mefficiency"]=0,["main_l/hdelay"]=2,
+["main_h/ldelay"]=2,["main_hook"]=2,["main_warn"]=0,["main_alarm"]=0,
+}
+local vice_dot = {
+["vice_liftheight"]=2,["vice_height"]=2,["vice_realpulse"]=0,["vice_brkdis"]=2,["vice_motorcur"]=1,["vice_motorvolt"]=1,
+["vice_bfknum"]=0,["vice_mruntime"]=0,["vice_bruntime"]=1,["vice_power"]=2,["vice_mefficiency"]=0,["vice_l/hdelay"]=2,
+["vice_h/ldelay"]=2,["vice_hook"]=2,["vice_warn"]=0,["vice_alarm"]=0,
+}
 -----------------------------------小车页面json--------------------------------------
 local small1_state = {
   [1] = "small1_state",             --小车1的机构状态
@@ -532,26 +542,11 @@ function _M.decode(payload)
             packet[ cmds[3] ] = 'func-lifting'
         
             packet["cranetype"] = bit.lshift(getnumber(12),8) + getnumber(13)  --起重机类型
-            --local cranetype = bit.lshift( getnumber(12) , 8 ) + getnumber(13)      --0：3机构:1：4机构:2：5机构
+
             for i=1,3,1 do  
                 packet[ main_state[i] ] =  bit.lshift(getnumber(12+i*2),8) + getnumber(13+i*2) --状态、故障、控制方式   
             end
-            --[[
-            local m = bit.band(getnumber(21),bit.lshift(1,0)) --主钩-运行方向
-            if m~=0 then
-              packet[main_state[4] ] = 1
-            end
-            local m = bit.band(getnumber(21),bit.lshift(1,1))
-            if m~=0 then
-              packet[main_state[4] ] = 0
-            end
-            local m = bit.band(getnumber(21),bit.lshift(1,2))  --主钩-运行速度
-            if m==0 then
-              packet[main_state[5] ] = 0
-            else
-              packet[main_state[5] ] = 1
-            end
-            ]]
+   
             --通过起升状态判断运行方向和运行速度
             if packet[ main_state[1] ]==1 or packet[ main_state[1] ]==2 then  
                 packet[ main_state[4] ] = 1
@@ -582,50 +577,63 @@ function _M.decode(payload)
                 end
             end
 
+           -- for i=1,16,1 do  
+               -- packet[ main_state[12+i] ] =  bit.lshift( getnumber(22+i*2) , 8 ) + getnumber(23+i*2) --起升高度、离地距离、....、报警值、低高延时、高低延时   
+            --end
             for i=1,16,1 do  
-                packet[ main_state[12+i] ] =  bit.lshift( getnumber(22+i*2) , 8 ) + getnumber(23+i*2) --起升高度、离地距离、....、报警值、低高延时、高低延时   
+                local dot = main_dot[ main_state[12+i] ]
+                if dot >=0 then
+                  local paranum = (bit.lshift(getnumber(22+i*2),8) + getnumber(23+i*2)) / ( 10^dot )
+                  local parastrformat = "%0."..dot.."f"
+                  packet[ main_state[12+i] ] = string.format(parastrformat,paranum)
+                end
             end
-            --[[
-            if(cranetype>0) then   --副钩出现 4机构和5机构
+            
+            if packet["cranetype"]>0 then   -- 4机构和5机构 副钩出现
+
                 for i=1,3,1 do  
-                    packet[vice_state[i] ] =  bit.lshift( getnumber(50+i*2) , 8 ) + getnumber(51+i*2) --状态、故障、控制方式   
+                    packet[ vice_state[i] ] =  bit.lshift(getnumber(54+i*2),8) + getnumber(55+i*2) --状态、故障、控制方式   
                 end
-                --解析副起升数字量输入 bit0 1 2 4 5 13对应正转反转高速 正转限位反转限位抱闸状态
-                local m = bit.band(getnumber(59),bit.lshift(1,0)) --副钩-运行方向
-                if m~=0 then
-                  packet[ vice_state[4] ] = 1
+       
+                --通过起升状态判断运行方向和运行速度
+                if packet[ vice_state[1] ]==1 or packet[ vice_state[1] ]==2 then  
+                    packet[ vice_state[4] ] = 1
+                elseif packet[ vice_state[1] ]==3 or packet[ vice_state[1] ]==4 then
+                    packet[ vice_state[4] ] = 0
                 end
-                local m = bit.band(getnumber(59),bit.lshift(1,1))
-                if m~=0 then
-                  packet[ vice_state[4] ] = 0
+                if packet[ vice_state[1] ]==1 or packet[ vice_state[1] ]==3 then  
+                    packet[ vice_state[5] ] = 0
+                elseif packet[ vice_state[1] ]==2 or packet[ vice_state[1] ]==4 then
+                    packet[ vice_state[5] ] = 1
                 end
-                local m = bit.band(getnumber(59),bit.lshift(1,2))  --副钩-运行速度
-                if m==0 then
-                  packet[ vice_state[5] ] = 0
-                else
-                  packet[ vice_state[5] ] = 1
-                end
-                for i=0,3 do
-                    local m = bit.band(getnumber(59),bit.lshift(1,(4+i))  --副钩-上限位
+                --解析主起升数字量输入 bit3 4 5 7 8 9 10对应电机过热 上 下限位 正转 反转反馈 高速 低速反馈
+                local input = bit.lshift(getnumber(62),8) + getnumber(63) 
+                for i=0,2 do
+                    local m = bit.band( input,bit.lshift(1,(3+i)) )  --主钩-电机过热 上 下限位
                     if m==0 then
                       packet[ vice_state[6+i] ] = 0
                     else
                       packet[ vice_state[6+i] ] = 1
                     end
                 end
-                for i=0,4 do
-                    local m = bit.band(getnumber(58),bit.lshift(1,i))  --副钩-反转反馈
+                for i=0,3 do
+                    local m = bit.band( input,bit.lshift(1,(7+i)) )  --主钩-正转 反转反馈 高速 低速反馈
                     if m==0 then
-                      packet[ vice_state[10+i] ] = 0
+                      packet[ vice_state[9+i] ] = 0
                     else
-                      packet[ vice_state[10+i] ] = 1
+                      packet[ vice_state[9+i] ] = 1
                     end
                 end
-                for i=1,14,1 do  
-                    packet[ vice_state[14+i] ] =  bit.lshift( getnumber(60+i*2) , 8 ) + getnumber(61+i*2) --起升高度、离地距离、....、报警值   
+
+                for i=1,16,1 do  
+                    local dot = vice_dot[ vice_state[12+i] ]
+                    if dot >=0 then
+                      local paranum = (bit.lshift(getnumber(64+i*2),8) + getnumber(65+i*2)) / ( 10^dot )
+                      local parastrformat = "%0."..dot.."f"
+                      packet[ vice_state[12+i] ] = string.format(parastrformat,paranum)
+                    end
                 end
             end --副钩结束end
-            ]]
             
         end  --判断数据类型最后的结束end
 
