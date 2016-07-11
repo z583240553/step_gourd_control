@@ -80,7 +80,6 @@ local vice_state = {
   [28] = "vice_alarm",             --副钩的报警值
 }
 ]]
---[[
 -----------------------------------小车页面json--------------------------------------
 local small1_state = {
   [1] = "small1_state",             --小车1的机构状态
@@ -89,8 +88,8 @@ local small1_state = {
   [4] = "small1_runspd",            --小车1的运行速度
   [5] = "small1_forlimit",          --小车1的正转限位
   [6] = "small1_revlimit",          --小车1的反转限位
-  [7] = "small1_hotfdk",            --小车1的热继反馈
-  [8] = "small1_brkfdk",            --小车1的抱闸反馈
+  [7] = "small1_brkfdk",            --小车1的抱闸反馈
+  [8] = "small1_motorhot",          --小车1的电机过热
   [9] = "small1_trip",              --小车1的小车行程
   [10] = "small1_position",         --小车1的位置信息
   [11] = "small1_realpulse",        --小车1的实时脉冲数
@@ -117,8 +116,8 @@ local small2_state = {
   [4] = "small2_runspd",            --小车2的运行速度
   [5] = "small2_forlimit",          --小车2的正转限位
   [6] = "small2_revlimit",          --小车2的反转限位
-  [7] = "small2_hotfdk",            --小车2的热继反馈
-  [8] = "small2_brkfdk",            --小车2的抱闸反馈
+  [7] = "small2_brkfdk",            --小车2的抱闸反馈
+  [8] = "small2_motorhot",          --小车2的电机过热
   [9] = "small2_trip",              --小车2的小车行程
   [10] = "small2_position",         --小车2的位置信息
   [11] = "small2_realpulse",        --小车2的实时脉冲数
@@ -138,8 +137,16 @@ local small2_state = {
   [25] = "small2_outpower",         --小车2的输出功率
   [26] = "small2_temp",             --小车2的散热器温度
 }
-]]
-
+local small1_dot = {
+["small1_trip"]=2,["small1_position"]=2,["small1_realpulse"]=0,["small1_brkdis"]=2,["small1_motorcur"]=1,["small1_motorvolt"]=1,
+["small1_bfknum"]=0,["small1_mruntime"]=0,["small1_bruntime"]=1,["small1_power"]=2,["small1_givfrq"]=2,["small1_fdkfrq"]=2,
+["small1_outcur"]=2,["small1_outvolt"]=1,["small1_busvolt"]=0,["small1_outtorq"]=1,["small1_outpower"]=2,["small1_temp"]=1,
+}
+local small2_dot = {
+["small2_trip"]=2,["small2_position"]=2,["small2_realpulse"]=0,["small2_brkdis"]=2,["small2_motorcur"]=1,["small2_motorvolt"]=1,
+["small2_bfknum"]=0,["small2_mruntime"]=0,["small2_bruntime"]=1,["small2_power"]=2,["small2_givfrq"]=2,["small2_fdkfrq"]=2,
+["small2_outcur"]=2,["small2_outvolt"]=1,["small2_busvolt"]=0,["small2_outtorq"]=1,["small2_outpower"]=2,["small2_temp"]=1,
+}
 -----------------------------------大车页面json--------------------------------------
 local large_state = {
   [1] = "large_state",             --大车的机构状态
@@ -439,19 +446,54 @@ function _M.decode(payload)
                 end
             end
           
-            for i=1,18,1 do  
+            for i=1,18,1 do   --行程、位置信息、....、散热器温度  
                 local dot = large_dot[ large_state[8+i] ]
                 if dot >=0 then
                   local paranum = (bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)) / ( 10^dot )
                   local parastrformat = "%0."..dot.."f"
                   packet[ large_state[8+i] ] = string.format(parastrformat,paranum)
                 end
-            end
-             --   packet[ large_state[8+i] ] = bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)--行程、位置信息、....、散热器温度  
-            
+            end 
+        ------------------------------小车数据--------------------------------
+        elseif func==0x03 then
+            packet[ 'cranetype' ] = bit.lshift(getnumber(12),8) + getnumber(13)  --起重机类型  
 
+            for i=1,2,1 do  
+                packet[ small1_state[i] ] =  bit.lshift(getnumber(12+i*2),8) + getnumber(13+i*2) --状态、故障   
+            end
             
-        end  --大if判断最后的结束end
+            --通过小状态判断运行方向和运行速度
+            if packet[ small1_state[1] ]==2 or packet[ small1_state[1] ]==4 then  
+                packet[ small1_state[3] ] = 1
+            elseif packet[ small1_state[1] ]==3 or packet[ small1_state[1] ]==5 then
+                packet[ small1_state[3] ] = 0
+            end
+            if packet[ small1_state[1] ]==2 or packet[ small1_state[1] ]==3 then  
+                packet[ small1_state[4] ] = 0
+            elseif packet[ small1_state[1] ]==4 or packet[ small1_state[1] ]==5 then
+                packet[ small1_state[4] ] = 1
+            end
+            
+            --解析小车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
+            for i=0,2 do
+                local m = bit.band(getnumber(21),bit.lshift(1,(5+i)))  --小车-正转限位 反转限位 抱闸反馈
+                if m==0 then
+                  packet[ small1_state[5+i] ] = 0
+                else
+                  packet[ small1_state[5+i] ] = 1
+                end
+            end
+          
+            for i=1,18,1 do  
+                local dot = small1_dot[ small1_state[8+i] ]
+                if dot >=0 then
+                  local paranum = (bit.lshift(getnumber(22+i*2),8) + getnumber(23+i*2)) / ( 10^dot )
+                  local parastrformat = "%0."..dot.."f"
+                  packet[ small1_state[8+i] ] = string.format(parastrformat,paranum)
+                end
+            end
+            
+        end  --判断数据类型最后的结束end
 
         --和校验
         for i=1,(templen+4),1 do        
