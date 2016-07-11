@@ -410,7 +410,8 @@ function _M.decode(payload)
         else if func == 0x04 then
             packet[ cmds[3] ] = 'func-large'
             FCS_Value = bit.lshift( getnumber(58) , 8 ) + getnumber(59)
-
+             packet[ large_state[5] ] = 66
+           --[[
             for i=1,2,1 do  
                 packet[ large_state[i] ] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
             end
@@ -437,6 +438,7 @@ function _M.decode(payload)
             for i=1,18,1 do  
                 packet[ large_state[8+i] ] =  bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2) --行程、位置信息、....、散热器温度  
             end
+            ]]
             --和校验
             for i=1,57,1 do        
               table.insert(FCS_Array,getnumber(i))
