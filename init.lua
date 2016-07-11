@@ -206,13 +206,12 @@ end
 for j=1,4,1 do
   ctrl_state[54+i] = "ctrl_y7"..(i-1) --Y70、、Y73
 end
-local ctrl_state ={
-  [59] = "ctrl_cranetype",        --起重机类型
-  [60] = "ctrl_weight",           --称重吨位
-  [61] = "ctrl_signal",           --称重采集信号
-  [62] = "ctrl_warn",             --称重预警值
-  [63] = "ctrl_alarm",            --称重报警值
-}
+ctrl_state[59] = "ctrl_cranetype"        --起重机类型
+ctrl_state[60] = "ctrl_weight"           --称重吨位
+ctrl_state[61] = "ctrl_signal"           --称重采集信号
+ctrl_state[62] = "ctrl_warn"             --称重预警值
+ctrl_state[63] = "ctrl_alarm"            --称重报警值
+
 
 --[[
 -----------------------------------起重主监控页面json--------------------------------------
