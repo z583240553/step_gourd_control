@@ -403,22 +403,24 @@ function _M.decode(payload)
             for i=0,4,1 do  
                 packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
+            packet[ ctrl_state[60] ] = packet[ ctrl_state[60] ]/100
+            packet[ ctrl_state[61] ] = packet[ ctrl_state[61] ]/100
         ------------------------------大车数据--------------------------------
         elseif func==0x04 then
               packet[ 'test' ] = 123
-          --[[
+          
             for i=1,2,1 do  
                 packet[ large_state[i] ] =  bit.lshift( getnumber(10+i*2) , 8 ) + getnumber(11+i*2) --状态、故障   
             end
             --通过大车状态判断运行方向和运行速度
             if packet[ large_state[1] ]==2 or packet[ large_state[1] ]==4 then  
                 packet[ large_state[3] ] = 1
-            else if packet[ large_state[1] ]==3 or packet[ large_state[1] ]==5 then
+            elseif packet[ large_state[1] ]==3 or packet[ large_state[1] ]==5 then
                 packet[ large_state[3] ] = 0
             end
             if packet[ large_state[1] ]==2 or packet[ large_state[1] ]==3 then  
                 packet[ large_state[4] ] = 0
-            else if packet[ large_state[1] ]==4 or packet[ large_state[1] ]==5 then
+            elseif packet[ large_state[1] ]==4 or packet[ large_state[1] ]==5 then
                 packet[ large_state[4] ] = 1
             end
             --解析大车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
@@ -433,7 +435,7 @@ function _M.decode(payload)
             for i=1,18,1 do  
                 packet[ large_state[8+i] ] =  bit.lshift( getnumber(20+i*2) , 8 ) + getnumber(21+i*2) --行程、位置信息、....、散热器温度  
             end
-            ]]
+            
         end  --大if判断最后的结束end
 
         --和校验
