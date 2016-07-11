@@ -338,17 +338,19 @@ function _M.decode(payload)
     local head2 = getnumber(2)
     if ( head1 == 0x3B and head2 == 0x31 ) then 
         local templen = bit.lshift( getnumber(3) , 8 ) + getnumber(4) --收到的数据长度
+
+        FCS_Value = bit.lshift(getnumber(templen+5),8) + getnumber(templen+6)
         --templen will be the important parameter in the next calculate
         --in different task some number mabey be changed 
         --to avoid unnecessary problem
         --packet[ cmds[0] ] = templen
         packet[ cmds[1] ] = bit.lshift( getnumber(5) , 8 ) + bit.lshift( getnumber(6) , 16 ) + bit.lshift( getnumber(7) , 8 ) + getnumber(8)
-
+        
         local func = getnumber(10)  --数据类型功能码 
         if func == 0x01 then
 
             packet[ cmds[3] ] = 'func-controller'
-            FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
+            --FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
            
             --解析每位bit
             for i=0,2 do
@@ -401,13 +403,18 @@ function _M.decode(payload)
             for i=0,4,1 do  
                 packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
-
+            --[[
             --和校验
             for i=1,43,1 do        
               table.insert(FCS_Array,getnumber(i))
             end
-
+             ]]
         end  --大if判断最后的结束end
+
+        --和校验
+        for i=1,(templen+4),1 do        
+          table.insert(FCS_Array,getnumber(i))
+        end
 
         if(utilCalcFCS(FCS_Array,#FCS_Array) == FCS_Value) then
           packet['status'] = 'SUCCESS'
