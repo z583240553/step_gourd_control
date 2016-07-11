@@ -170,6 +170,7 @@ local large_state = {
   [26] = "large_temp",             --大车的散热器温度
 }
 ]]
+--[[
 -----------------------------------控制器页面json--------------------------------------
 for j=1,10,1 do
   ctrl_state[i] = "ctrl_x0"..(i-1)  --X00、、X09
@@ -204,6 +205,8 @@ end
 for j=1,4,1 do
   ctrl_state[54+i] = "ctrl_y7"..(i-1) --Y70、、Y73
 end
+]]
+
 
 local ctrl_state ={
   [59] = "ctrl_cranetype",        --起重机类型
@@ -212,6 +215,9 @@ local ctrl_state ={
   [62] = "ctrl_warn",             --称重预警值
   [63] = "ctrl_alarm",            --称重报警值
 }
+  for j=1,5,1 do
+    fault_cmds[j] = "fault"..i.."_"..ctrl_state[60] 
+  end
 --[[
 -----------------------------------起重主监控页面json--------------------------------------
 local crane_state = {
@@ -354,9 +360,18 @@ function _M.decode(payload)
             packet[ cmds[3] ] = 'func-controller'
             FCS_Value = bit.lshift(getnumber(44),8) + getnumber(45)
 
-            packet[ ctrl_state[30] ] = 11
-            packet[ ctrl_state[31] ] = 12
-            packet[ ctrl_state[32] ] = 13
+            for j=0,1 do    --X30组
+                local m = bit.band(getnumber(33),bit.lshift(1,j))
+                if m==0 then
+                  packet[fault_cmds[4+j]] = 0
+                else
+                  packet[fault_cmds[4+j]] = 1
+                end  
+            end
+
+            packet[ fault_cmds[1] ] = 11
+            packet[ fault_cmds[2] ] = 12
+            packet[ fault_cmds[3] ] = 13
             
             for i=0,4,1 do  
                 packet[ctrl_state[59+i]] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
