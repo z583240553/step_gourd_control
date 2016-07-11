@@ -139,7 +139,7 @@ local small2_state = {
   [26] = "small2_temp",             --小车2的散热器温度
 }
 ]]
---[[
+
 -----------------------------------大车页面json--------------------------------------
 local large_state = {
   [1] = "large_state",             --大车的机构状态
@@ -169,7 +169,6 @@ local large_state = {
   [25] = "large_outpower",         --大车的输出功率
   [26] = "large_temp",             --大车的散热器温度
 }
-]]
 
 -----------------------------------控制器页面json--------------------------------------
 local ctrl_state = {}
@@ -211,8 +210,6 @@ ctrl_state[60] = "ctrl_weight"           --称重吨位
 ctrl_state[61] = "ctrl_signal"           --称重采集信号
 ctrl_state[62] = "ctrl_warn"             --称重预警值
 ctrl_state[63] = "ctrl_alarm"            --称重报警值
-
-
 --[[
 -----------------------------------起重主监控页面json--------------------------------------
 local crane_state = {
@@ -402,6 +399,8 @@ function _M.decode(payload)
             for i=0,4,1 do  
                 packet[ ctrl_state[59+i] ] =  bit.lshift( getnumber(34+i*2) , 8 ) + getnumber(35+i*2) --起重机类型、吨位、采集信号、预警值、报警值  
             end
+            packet[ ctrl_state[60] ] = packet[ ctrl_state[60] ]/100;
+            packet[ ctrl_state[61] ] = packet[ ctrl_state[61] ]/1000;
 
             --和校验
             for i=1,43,1 do        
