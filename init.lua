@@ -215,8 +215,9 @@ local ctrl_state ={
   [62] = "ctrl_warn",             --称重预警值
   [63] = "ctrl_alarm",            --称重报警值
 }
+local fault_cmds = {}
   for j=1,5,1 do
-    fault_cmds[j] = "fault"..i.."_"..ctrl_state[60] 
+    fault_cmds[j] = "fault"..i.."ab" 
   end
 --[[
 -----------------------------------起重主监控页面json--------------------------------------
