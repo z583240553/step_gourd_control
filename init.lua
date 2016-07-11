@@ -169,7 +169,6 @@ local large_state = {
   [25] = "large_outpower",         --大车的输出功率
   [26] = "large_temp",             --大车的散热器温度
 }
---[[
 local large_state_dot = {
   [1] = 100,              --大车的大车行程小数位数
   [2] = 100,         --大车的位置信息小数位数
@@ -190,7 +189,6 @@ local large_state_dot = {
   [17] = 100,         --大车的输出功率小数位数
   [18] = 10,             --大车的散热器温度小数位数
 }
-]]
 -----------------------------------控制器页面json--------------------------------------
 local ctrl_state = {}
 for i=1,10,1 do
@@ -445,19 +443,19 @@ function _M.decode(payload)
             elseif packet[ large_state[1] ]==4 or packet[ large_state[1] ]==5 then
                 packet[ large_state[4] ] = 1
             end
-            --[[
+            
             --解析大车数字量输入 bit5 6 7对应正转反转高速 正转限位反转限位抱闸反馈（电机过热暂时没有数据）
             for i=0,2 do
-                local m = bit.band(getnumber(19),bit.lshift(1,(5+i))  --大车-正转限位 反转限位 抱闸反馈
+                local m = bit.band(getnumber(19),bit.lshift(1,(5+i)))  --大车-正转限位 反转限位 抱闸反馈
                 if m==0 then
                   packet[ large_state[5+i] ] = 0
                 else
                   packet[ large_state[5+i] ] = 1
                 end
             end
-            ]]
+          
             for i=1,18,1 do  
-                packet[ large_state[8+i] ] = bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)--行程、位置信息、....、散热器温度  
+                packet[ large_state[8+i] ] = (bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2))/large_state_dot[i]--行程、位置信息、....、散热器温度  
             end
 
             
