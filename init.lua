@@ -655,7 +655,7 @@ function _M.decode(payload)
             if (bit.lshift(getnumber(28),8)+getnumber(29))>0 then
                packet[ crane_state[46] ] = 2                                         --主起升机构状态
             end
-            --[[
+            
             packet[ crane_state[35] ] = bit.lshift(getnumber(30),8)+getnumber(31)   --主钩状态-控制方式
             packet[ crane_state[37] ] = (bit.lshift(getnumber(34),8)+getnumber(35))/100    --主钩状态-离地高度
             packet[ crane_state[44] ] = (bit.lshift(getnumber(36),8)+getnumber(37))/100    --主钩状态-钩载显示
@@ -663,7 +663,7 @@ function _M.decode(payload)
               packet[ crane_state[39] ] = bit.lshift(getnumber(38),8)+getnumber(39)   --主钩状态-变频器状态
               packet[ crane_state[43] ] = bit.lshift(getnumber(40),8)+getnumber(41)    --主钩状态-故障代码  
             end
-            
+            --[[
             --通过起升状态判断运行方向和运行速度
             if liftstate==1 or liftstate==2 then  
                 packet[ crane_state[36] ] = 1
