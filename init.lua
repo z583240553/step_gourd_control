@@ -672,7 +672,7 @@ function _M.decode(payload)
             end
             if liftstate==1 or liftstate==3 then  
                 packet[ crane_state[38] ] = 0
-            elseif liftstate=2 or liftstate==4 then
+            elseif liftstate==2 or liftstate==4 then
                 packet[ crane_state[38] ] = 1
             end
             --[[
