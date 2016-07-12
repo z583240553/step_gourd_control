@@ -675,7 +675,7 @@ function _M.decode(payload)
             elseif liftstate==2 or liftstate==4 then
                 packet[ crane_state[38] ] = 1
             end
-            --[[
+            -----------------------------------------
             --解析主起升数字量输入 bit4 5 13对应上下限位 抱闸反馈状态
             local input = bit.lshift(getnumber(32),8) + getnumber(33) 
             for i=0,1 do
@@ -718,7 +718,7 @@ function _M.decode(payload)
                 end
                 if viceliftstate==1 or viceliftstate==3 then  
                     packet[ crane_state[28] ] = 0
-                elseif viceliftstate=2 or viceliftstate==4 then
+                elseif viceliftstate==2 or viceliftstate==4 then
                     packet[ crane_state[28] ] = 1
                 end
                 --解析副钩数字量输入 bit4 5 13对应上下限位 抱闸反馈状态
@@ -863,7 +863,7 @@ function _M.decode(payload)
                   packet[ crane_state[52+i] ] = 1
                 end
             end
-          ]]
+          --]]
          ------------------------------------------------   
         end  --判断数据类型最后的结束end
 
