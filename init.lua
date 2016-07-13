@@ -962,13 +962,12 @@ function _M.decode(payload)
             for i=1,6 do   --u v w相瞬时电压 u v w相瞬时电流
               packet['invt_s1_'..invertstate[8+i] ] = bit.lshift(getnumber(30+(i-1)*2),8)+getnumber(31+(i-1)*2)
             end
-            --[[
             for i=0,7 do  --数字量输入x0.....x7
                 local m = bit.band(getnumber(43),bit.lshift(1,i))  
                 if m==0 then
                   packet[ 'invt_s1_x'..i ] = 0
                 else
-                  packet[ 'invt_s1_x'..i] ] = 1
+                  packet[ 'invt_s1_x'..i ] = 1
                 end
             end
             for i=0,5 do  --数字量输出y0.....y5
@@ -979,6 +978,7 @@ function _M.decode(payload)
                   packet[ 'invt_s1_y'..i ] = 1
                 end
             end
+            --[[
             ----大车变频---- +68
             for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
               packet['invt_l_'..invertstate[i] ] = bit.lshift(getnumber(82+(i-1)*2),8)+getnumber(83+(i-1)*2)
