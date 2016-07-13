@@ -978,7 +978,6 @@ function _M.decode(payload)
                   packet[ 'invt_s1_y'..i ] = 1
                 end
             end
-            --[[
             ----大车变频---- +68
             for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
               packet['invt_l_'..invertstate[i] ] = bit.lshift(getnumber(82+(i-1)*2),8)+getnumber(83+(i-1)*2)
@@ -1083,7 +1082,7 @@ function _M.decode(payload)
                     end
                 end
             end
-            ]]
+     
         end  --判断数据类型最后的结束end
 
         --和校验
