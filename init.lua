@@ -947,7 +947,7 @@ function _M.decode(payload)
                 packet[ fault_state[3+(i-1)*4] ] = buff[(i-1)*9+3]
                 packet[ fault_state[4+(i-1)*4] ] = buff[(i-1)*9+4]..'-'..buff[(i-1)*9+5]..'-'..buff[(i-1)*9+6]..'-'..buff[(i-1)*9+7]..'-'..buff[(i-1)*9+8]..'-'..buff[(i-1)*9+9]
             end
-            --[[
+            
           ------------------------------变频器数据--------------------------------  
         elseif func==0x05 then
             packet[ cmds[3] ] = 'func-invert'
@@ -962,6 +962,7 @@ function _M.decode(payload)
             for i=1,6 do   --u v w相瞬时电压 u v w相瞬时电流
               packet['invt_s1_'..invertstate[8+i] ] = bit.lshift(getnumber(30+(i-1)*2),8)+getnumber(31+(i-1)*2)
             end
+            --[[
             for i=0,7 do  --数字量输入x0.....x7
                 local m = bit.band(getnumber(43),bit.lshift(1,i))  
                 if m==0 then
