@@ -322,7 +322,70 @@ for i=1,4,1 do
   crane_state[92+i] = "crn_"..i.."_largerev"  --i档大车反转
 end
 ]]
-
+-----------------------------------故障表json--------------------------------------
+local fault_state = {}
+local faultstate = {
+    [1] = "code",
+    [2] = "grade",
+    [3] = "state",
+    [4] = "time",
+}
+for i=1,20,1 do
+  for j=1,4,1 do
+    fault_state[(i-1)*4+j] = "flt"..i.."_"..faultstate[j] 
+  end
+end
+-----------------------------------变频信息json-----------------------------------
+local invertstate = {
+    [1] = "givfrq",
+    [2] = "fdkfrq",
+    [3] = "outcur",
+    [4] = "outvolt",
+    [5] = "busvolt",
+    [6] = "outtorq",
+    [7] = "yunstate",
+    [8] = "temp",
+    [9] = "uvolt",
+    [10] = "vvolt",
+    [11] = "wvolt",
+    [12] = "ucur",
+    [13] = "vcur",
+    [14] = "wcur",
+    [15] = "m_brand",
+    [16] = "m_model",
+    [17] = "m_volt",
+    [18] = "m_cur",
+    [19] = "m_frq",
+    [20] = "m_spd",
+    [21] = "m_pole",
+    [22] = "m_torq",
+    [23] = "v_brand",
+    [24] = "v_model",
+    [25] = "v_volt",
+    [26] = "v_cur",
+    [27] = "v_frq",
+    [28] = "v_hver",
+    [29] = "v_sver",
+    [30] = "v_ver",
+}
+--[[
+for j=1,30,1 do
+  invert_state[j] = "invt_m_"..invertstate[j] 
+end
+for j=1,30,1 do
+  invert_state[30+j] = "invt_v_"..invertstate[j] 
+end
+  for j=1,30,1 do
+  invert_state[(i-1)*4+j] = "invt_s1_"..invertstate[j] 
+end
+  for j=1,30,1 do
+  invert_state[(i-1)*4+j] = "invt_s2_"..invertstate[j] 
+end
+  for j=1,30,1 do
+  invert_state[(i-1)*4+j] = "invt_l_"..invertstate[j] 
+end
+]]
+------------------------------------------
 function utilCalcFCS( pBuf , len )
 	local rtrn = 0
 	local l = len
@@ -675,7 +738,7 @@ function _M.decode(payload)
             elseif liftstate==2 or liftstate==4 then
                 packet[ crane_state[38] ] = 1
             end
-            -----------------------------------------
+    
             --解析主起升数字量输入 bit4 5 13对应上下限位 抱闸反馈状态
             local input = bit.lshift(getnumber(32),8) + getnumber(33) 
             for i=0,1 do
@@ -863,8 +926,161 @@ function _M.decode(payload)
                   packet[ crane_state[52+i] ] = 1
                 end
             end
-          --]]
-         ------------------------------------------------   
+         ------------------------------------------------   到这个地方 转码都ok
+        ------------------------------故障表数据--------------------------------
+        elseif func==0x06 then
+            packet[ cmds[3] ] = 'func-fault'
+
+            packet['faultnum'] = bit.lshift(getnumber(12),8)+getnumber(13) --故障个数
+            local faultnum = bit.lshift(getnumber(12),8)+getnumber(13) --故障个数
+            if faultnum>20 then
+               faultnum = 20
+            end
+            local buff = {}
+            for i=1,faultnum do
+                for j=1,9 do
+                    buff[(i-1)*9+j] = bit.lshift(getnumber(14+(j-1)*2+(i-1)*18),8)+getnumber(15+(j-1)*2+(i-1)*18)
+                end
+                packet[ fault_state[1+(i-1)*4] ] = buff[(i-1)*9+1]
+                packet[ fault_state[2+(i-1)*4] ] = buff[(i-1)*9+2]
+                packet[ fault_state[3+(i-1)*4] ] = buff[(i-1)*9+3]
+                packet[ fault_state[4+(i-1)*4] ] = buff[(i-1)*9+4]..'-'..buff[(i-1)*9+5]..'-'..buff[(i-1)*9+6]..'-'..buff[(i-1)*9+7]..'-'..buff[(i-1)*9+8]..'-'..buff[(i-1)*9+9]
+            end
+          ------------------------------变频器数据--------------------------------  
+        elseif func==0x05 then
+            packet[ cmds[3] ] = 'func-invert'
+
+            packet[ 'cranetype' ] = bit.lshift(getnumber(12),8)+getnumber(13)
+            ----小车变频----
+            for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
+              packet['invt_s1_'..invertstate[i] ] = bit.lshift(getnumber(14+(i-1)*2),8)+getnumber(15+(i-1)*2)
+            end
+            packet['invt_s1_'..invertstate[7] ] = bit.lshift(getnumber(80),8)+getnumber(81) --运行状态
+            packet['invt_s1_'..invertstate[8] ] = bit.lshift(getnumber(28),8)+getnumber(29) --散热器温度
+            for i=1,6 do   --u v w相瞬时电压 u v w相瞬时电流
+              packet['invt_s1_'..invertstate[8+i] ] = bit.lshift(getnumber(30+(i-1)*2),8)+getnumber(31+(i-1)*2)
+            end
+            for i=0,7 do  --数字量输入x0.....x7
+                local m = bit.band(getnumber(43),bit.lshift(1,i))  
+                if m==0 then
+                  packet[ 'invt_s1_x'..i ] = 0
+                else
+                  packet[ 'invt_s1_x'..i] ] = 1
+                end
+            end
+            for i=0,5 do  --数字量输出y0.....y5
+                local m = bit.band(getnumber(45),bit.lshift(1,i))  
+                if m==0 then
+                  packet[ 'invt_s1_y'..i ] = 0
+                else
+                  packet[ 'invt_s1_y'..i ] = 1
+                end
+            end
+            ----大车变频---- +68
+            for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
+              packet['invt_l_'..invertstate[i] ] = bit.lshift(getnumber(82+(i-1)*2),8)+getnumber(83+(i-1)*2)
+            end
+            packet['invt_l_'..invertstate[7] ] = bit.lshift(getnumber(148),8)+getnumber(149) --运行状态
+            packet['invt_l_'..invertstate[8] ] = bit.lshift(getnumber(96),8)+getnumber(97) --散热器温度
+            for i=1,6 do   --u v w相瞬时电压 u v w相瞬时电流
+              packet['invt_l_'..invertstate[8+i] ] = bit.lshift(getnumber(98+(i-1)*2),8)+getnumber(99+(i-1)*2)
+            end
+            for i=0,7 do  --数字量输入x0.....x7
+                local m = bit.band(getnumber(111),bit.lshift(1,i))  
+                if m==0 then
+                  packet[ 'invt_l_x'..i ] = 0
+                else
+                  packet[ 'invt_l_x'..i ] = 1
+                end
+            end
+            for i=0,5 do  --数字量输出y0.....y5
+                local m = bit.band(getnumber(113),bit.lshift(1,i))  
+                if m==0 then
+                  packet[ 'invt_l_y'..i ] = 0
+                else
+                  packet[ 'invt_l_y'..i ] = 1
+                end
+            end
+            ----主钩变频----68*2=136
+            for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
+              packet['invt_m_'..invertstate[i] ] = bit.lshift(getnumber(150+(i-1)*2),8)+getnumber(151+(i-1)*2)
+            end
+            packet['invt_m_'..invertstate[7] ] = bit.lshift(getnumber(216),8)+getnumber(217) --运行状态
+            packet['invt_m_'..invertstate[8] ] = bit.lshift(getnumber(164),8)+getnumber(165) --散热器温度
+            for i=1,6 do   --u v w相瞬时电压 u v w相瞬时电流
+              packet['invt_m_'..invertstate[8+i] ] = bit.lshift(getnumber(166+(i-1)*2),8)+getnumber(167+(i-1)*2)
+            end
+            for i=0,7 do  --数字量输入x0.....x7
+                local m = bit.band(getnumber(179),bit.lshift(1,i))  
+                if m==0 then
+                  packet[ 'invt_m_x'..i ] = 0
+                else
+                  packet[ 'invt_m_x'..i ] = 1
+                end
+            end
+            for i=0,5 do  --数字量输出y0.....y5
+                local m = bit.band(getnumber(181),bit.lshift(1,i))  
+                if m==0 then
+                  packet[ 'invt_m_y'..i ] = 0
+                else
+                  packet[ 'invt_m_y'..i ] = 1
+                end
+            end
+            ----副钩变频----68*3=204
+            if packet[ 'cranetype' ]>0 then
+                for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
+                  packet['invt_v_'..invertstate[i] ] = bit.lshift(getnumber(218+(i-1)*2),8)+getnumber(219+(i-1)*2)
+                end
+                packet['invt_v_'..invertstate[7] ] = bit.lshift(getnumber(284),8)+getnumber(285) --运行状态
+                packet['invt_v_'..invertstate[8] ] = bit.lshift(getnumber(232),8)+getnumber(233) --散热器温度
+                for i=1,6 do   --u v w相瞬时电压 u v w相瞬时电流
+                  packet['invt_v_'..invertstate[8+i] ] = bit.lshift(getnumber(234+(i-1)*2),8)+getnumber(235+(i-1)*2)
+                end
+                for i=0,7 do  --数字量输入x0.....x7
+                    local m = bit.band(getnumber(247),bit.lshift(1,i))  
+                    if m==0 then
+                      packet[ 'invt_v_x'..i ] = 0
+                    else
+                      packet[ 'invt_v_x'..i ] = 1
+                    end
+                end
+                for i=0,5 do  --数字量输出y0.....y5
+                    local m = bit.band(getnumber(249),bit.lshift(1,i))  
+                    if m==0 then
+                      packet[ 'invt_v_y'..i ] = 0
+                    else
+                      packet[ 'invt_v_y'..i ] = 1
+                    end
+                end
+            end
+            ----2号小车变频---- 68*4=272
+            if packet[ 'cranetype' ]>1 then
+                for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
+                  packet['invt_s2_'..invertstate[i] ] = bit.lshift(getnumber(286+(i-1)*2),8)+getnumber(287+(i-1)*2)
+                end
+                packet['invt_s2_'..invertstate[7] ] = bit.lshift(getnumber(352),8)+getnumber(353) --运行状态
+                packet['invt_s2_'..invertstate[8] ] = bit.lshift(getnumber(300),8)+getnumber(301) --散热器温度
+                for i=1,6 do   --u v w相瞬时电压 u v w相瞬时电流
+                  packet['invt_s2_'..invertstate[8+i] ] = bit.lshift(getnumber(302+(i-1)*2),8)+getnumber(303+(i-1)*2)
+                end
+                for i=0,7 do  --数字量输入x0.....x7
+                    local m = bit.band(getnumber(315),bit.lshift(1,i))  
+                    if m==0 then
+                      packet[ 'invt_s2_x'..i ] = 0
+                    else
+                      packet[ 'invt_s2_x'..i ] = 1
+                    end
+                end
+                for i=0,5 do  --数字量输出y0.....y5
+                    local m = bit.band(getnumber(317),bit.lshift(1,i))  
+                    if m==0 then
+                      packet[ 'invt_s2_y'..i ] = 0
+                    else
+                      packet[ 'invt_s2_y'..i ] = 1
+                    end
+                end
+            end
+            
         end  --判断数据类型最后的结束end
 
         --和校验
