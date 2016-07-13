@@ -335,7 +335,6 @@ for i=1,20,1 do
     fault_state[(i-1)*4+j] = "flt"..i.."_"..faultstate[j] 
   end
 end
---[[
 -----------------------------------变频信息json-----------------------------------
 local invertstate = {
     [1] = "givfrq",
@@ -369,7 +368,7 @@ local invertstate = {
     [29] = "v_sver",
     [30] = "v_ver",
 }
-]]
+
 --[[
 for j=1,30,1 do
   invert_state[j] = "invt_m_"..invertstate[j] 
