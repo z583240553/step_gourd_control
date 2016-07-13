@@ -42,8 +42,8 @@ local main_state = {
   [21] = "main_bruntime",         --主钩的抱闸运行时间
   [22] = "main_power",            --主钩的有功功率
   [23] = "main_mefficiency",      --主钩的电机效率
-  [24] = "main_l/hdelay",         --主钩的低/高延迟 加速
-  [25] = "main_h/ldelay",         --主钩的高/低延迟 减速
+  [24] = "main_lhdelay",         --主钩的低/高延迟 加速
+  [25] = "main_hldelay",         --主钩的高/低延迟 减速
   [26] = "main_hook",              --主钩的钩载显示
   [27] = "main_warn",              --主钩的预警值
   [28] = "main_alarm",             --主钩的报警值
@@ -72,21 +72,21 @@ local vice_state = {
   [21] = "vice_bruntime",         --副钩的抱闸运行时间
   [22] = "vice_power",            --副钩的有功功率
   [23] = "vice_mefficiency",      --副钩的电机效率
-  [24] = "vice_l/hdelay",         --副钩的低/高延迟
-  [25] = "vice_h/ldelay",         --副钩的高/低延迟
+  [24] = "vice_lhdelay",         --副钩的低/高延迟
+  [25] = "vice_hldelay",         --副钩的高/低延迟
   [26] = "vice_hook",              --副钩的钩载显示
   [27] = "vice_warn",              --副钩的预警值
   [28] = "vice_alarm",             --副钩的报警值
 }
 local main_dot = {
 ["main_liftheight"]=2,["main_height"]=2,["main_realpulse"]=0,["main_brkdis"]=2,["main_motorcur"]=1,["main_motorvolt"]=1,
-["main_bfknum"]=0,["main_mruntime"]=0,["main_bruntime"]=1,["main_power"]=2,["main_mefficiency"]=0,["main_l/hdelay"]=2,
-["main_h/ldelay"]=2,["main_hook"]=2,["main_warn"]=0,["main_alarm"]=0,
+["main_bfknum"]=0,["main_mruntime"]=0,["main_bruntime"]=1,["main_power"]=2,["main_mefficiency"]=0,["main_lhdelay"]=2,
+["main_hldelay"]=2,["main_hook"]=2,["main_warn"]=0,["main_alarm"]=0,
 }
 local vice_dot = {
 ["vice_liftheight"]=2,["vice_height"]=2,["vice_realpulse"]=0,["vice_brkdis"]=2,["vice_motorcur"]=1,["vice_motorvolt"]=1,
-["vice_bfknum"]=0,["vice_mruntime"]=0,["vice_bruntime"]=1,["vice_power"]=2,["vice_mefficiency"]=0,["vice_l/hdelay"]=2,
-["vice_h/ldelay"]=2,["vice_hook"]=2,["vice_warn"]=0,["vice_alarm"]=0,
+["vice_bfknum"]=0,["vice_mruntime"]=0,["vice_bruntime"]=1,["vice_power"]=2,["vice_mefficiency"]=0,["vice_lhdelay"]=2,
+["vice_hldelay"]=2,["vice_hook"]=2,["vice_warn"]=0,["vice_alarm"]=0,
 }
 -----------------------------------小车页面json--------------------------------------
 local small1_state = {
@@ -519,8 +519,9 @@ function _M.decode(payload)
                 local dot = large_dot[ large_state[8+i] ]
                 if dot >=0 then
                   local paranum = (bit.lshift(getnumber(20+i*2),8) + getnumber(21+i*2)) / ( 10^dot )
-                  local parastrformat = "%0."..dot.."f"
-                  packet[ large_state[8+i] ] = string.format(parastrformat,paranum)
+                 -- local parastrformat = "%0."..dot.."f"
+                 -- packet[ large_state[8+i] ] = string.format(parastrformat,paranum)
+                 packet[ large_state[8+i] ] = paranum
                 end
             end 
         ------------------------------小车数据--------------------------------
