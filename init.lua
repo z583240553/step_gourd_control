@@ -335,6 +335,7 @@ for i=1,20,1 do
     fault_state[(i-1)*4+j] = "flt"..i.."_"..faultstate[j] 
   end
 end
+--[[
 -----------------------------------变频信息json-----------------------------------
 local invertstate = {
     [1] = "givfrq",
@@ -368,6 +369,7 @@ local invertstate = {
     [29] = "v_sver",
     [30] = "v_ver",
 }
+]]
 --[[
 for j=1,30,1 do
   invert_state[j] = "invt_m_"..invertstate[j] 
@@ -946,6 +948,7 @@ function _M.decode(payload)
                 packet[ fault_state[3+(i-1)*4] ] = buff[(i-1)*9+3]
                 packet[ fault_state[4+(i-1)*4] ] = buff[(i-1)*9+4]..'-'..buff[(i-1)*9+5]..'-'..buff[(i-1)*9+6]..'-'..buff[(i-1)*9+7]..'-'..buff[(i-1)*9+8]..'-'..buff[(i-1)*9+9]
             end
+            --[[
           ------------------------------变频器数据--------------------------------  
         elseif func==0x05 then
             packet[ cmds[3] ] = 'func-invert'
@@ -1080,7 +1083,7 @@ function _M.decode(payload)
                     end
                 end
             end
-            
+            ]]
         end  --判断数据类型最后的结束end
 
         --和校验
