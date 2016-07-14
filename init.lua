@@ -358,7 +358,7 @@ local invertstate = {
     [19] = "m_frq",
     [20] = "m_spd",
     [21] = "m_pole",
-    [22] = "m_torq",
+    [22] = "m_pwr",  --将原来的额定转矩改成额定功率
     [23] = "v_brand",
     [24] = "v_model",
     [25] = "v_volt",
@@ -366,7 +366,7 @@ local invertstate = {
     [27] = "v_frq",
     [28] = "v_hver",
     [29] = "v_sver",
-    [30] = "v_ver",
+    [30] = "v_pwr",   --将原来的版本号改成额定功率
 }
 
 --[[
