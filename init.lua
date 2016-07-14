@@ -368,6 +368,13 @@ local invertstate = {
     [29] = "v_sver",
     [30] = "v_pwr",   --将原来的版本号改成额定功率
 }
+local invert_dot = {
+["givfrq"]=2,["fdkfrq"]=2,["outcur"]=2,["outvolt"]=1,["busvolt"]=0,["outtorq"]=1,
+["yunstate"]=0,["temp"]=1,["uvolt"]=1,["vvolt"]=1,["wvolt"]=1,["ucur"]=1,
+["vcur"]=1,["wcur"]=1,["m_brand"]=0,["m_model"]=0,["m_volt"]=0,["m_cur"]=1,
+["m_frq"]=2,["m_spd"]=0,["m_pole"]=0,["m_pwr"]=2,["v_brand"]=0,["v_model"]=0,
+["v_volt"]=0,["v_cur"]=1,["v_frq"]=2,["v_hver"]=2,["v_sver"]=2,["v_pwr"]=2,
+}
 
 --[[
 for j=1,30,1 do
@@ -981,6 +988,14 @@ function _M.decode(payload)
             end
             for i=15,30 do   --电机信息  变频器信息
               packet['invt_s1_'..invertstate[i] ] = bit.lshift(getnumber(48+(i-15)*2),8)+getnumber(49+(i-15)*2)
+            end
+            for i=1,30,1 do  
+                local dot = invert_dot[ invertstate[i] ]
+                if dot >=0 then
+                  packet['invt_s1_'..invertstate[i] ] = packet['invt_s1_'..invertstate[i] ] / ( 10^dot )
+                 -- local parastrformat = "%0."..dot.."f"
+                  --packet[ vice_state[12+i] ] = string.format(parastrformat,paranum)
+                end
             end
             ----大车变频---- +68
             for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
