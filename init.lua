@@ -435,7 +435,7 @@ function _M.decode(payload)
             --解析每位bit
             for i=0,2 do
                 for j=0,9 do    --X00组 X10组 X20组
-                    local m = bit.band((bit.lshift(getnumber(12+i*2),8)+getnumber(13+i*2)),bit.lshift(1,i))
+                    local m = bit.band( (bit.lshift(getnumber(12+i*2),8)+getnumber(13+i*2)) , bit.lshift(1,j) )
                     if m==0 then
                       packet[ ctrl_state[j+1+i*10] ] = 0
                     else
