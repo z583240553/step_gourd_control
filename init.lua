@@ -993,8 +993,6 @@ function _M.decode(payload)
                 local dot = invert_dot[ invertstate[i] ]
                 if dot >=0 then
                   packet['invt_s1_'..invertstate[i] ] = packet['invt_s1_'..invertstate[i] ] / ( 10^dot )
-                 -- local parastrformat = "%0."..dot.."f"
-                  --packet[ vice_state[12+i] ] = string.format(parastrformat,paranum)
                 end
             end
             ----大车变频---- +68
@@ -1025,6 +1023,12 @@ function _M.decode(payload)
             for i=15,30 do   --电机信息  变频器信息
               packet['invt_l_'..invertstate[i] ] = bit.lshift(getnumber(116+(i-15)*2),8)+getnumber(117+(i-15)*2)
             end
+            for i=1,30,1 do  
+                local dot = invert_dot[ invertstate[i] ]
+                if dot >=0 then
+                  packet['invt_l_'..invertstate[i] ] = packet['invt_l_'..invertstate[i] ] / ( 10^dot )
+                end
+            end
             ----主钩变频----68*2=136
             for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
               packet['invt_m_'..invertstate[i] ] = bit.lshift(getnumber(150+(i-1)*2),8)+getnumber(151+(i-1)*2)
@@ -1052,6 +1056,12 @@ function _M.decode(payload)
             end
             for i=15,30 do   --电机信息  变频器信息
               packet['invt_m_'..invertstate[i] ] = bit.lshift(getnumber(184+(i-15)*2),8)+getnumber(185+(i-15)*2)
+            end
+            for i=1,30,1 do  
+                local dot = invert_dot[ invertstate[i] ]
+                if dot >=0 then
+                  packet['invt_m_'..invertstate[i] ] = packet['invt_m_'..invertstate[i] ] / ( 10^dot )
+                end
             end
             ----副钩变频----68*3=204
             if packet[ 'cranetype' ]>0 then
@@ -1082,6 +1092,12 @@ function _M.decode(payload)
                 for i=15,30 do   --电机信息  变频器信息
                   packet['invt_v_'..invertstate[i] ] = bit.lshift(getnumber(252+(i-15)*2),8)+getnumber(253+(i-15)*2)
                 end
+                for i=1,30,1 do  
+                local dot = invert_dot[ invertstate[i] ]
+                if dot >=0 then
+                  packet['invt_v_'..invertstate[i] ] = packet['invt_v_'..invertstate[i] ] / ( 10^dot )
+                end
+            end
             end
             ----2号小车变频---- 68*4=272
             if packet[ 'cranetype' ]>1 then
@@ -1112,6 +1128,12 @@ function _M.decode(payload)
                 for i=15,30 do   --电机信息  变频器信息
                   packet['invt_s2_'..invertstate[i] ] = bit.lshift(getnumber(320+(i-15)*2),8)+getnumber(321+(i-15)*2)
                 end
+                for i=1,30,1 do  
+                local dot = invert_dot[ invertstate[i] ]
+                if dot >=0 then
+                  packet['invt_s2_'..invertstate[i] ] = packet['invt_s2_'..invertstate[i] ] / ( 10^dot )
+                end
+            end
             end
      
         end  --判断数据类型最后的结束end
