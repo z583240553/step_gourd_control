@@ -979,6 +979,9 @@ function _M.decode(payload)
                   packet[ 'invt_s1_y'..i ] = 1
                 end
             end
+            for i=15,30 do   --电机信息  变频器信息
+              packet['invt_s1_'..invertstate[i] ] = bit.lshift(getnumber(48+(i-15)*2),8)+getnumber(49+(i-15)*2)
+            end
             ----大车变频---- +68
             for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
               packet['invt_l_'..invertstate[i] ] = bit.lshift(getnumber(82+(i-1)*2),8)+getnumber(83+(i-1)*2)
@@ -1004,6 +1007,9 @@ function _M.decode(payload)
                   packet[ 'invt_l_y'..i ] = 1
                 end
             end
+            for i=15,30 do   --电机信息  变频器信息
+              packet['invt_l_'..invertstate[i] ] = bit.lshift(getnumber(116+(i-15)*2),8)+getnumber(117+(i-15)*2)
+            end
             ----主钩变频----68*2=136
             for i=1,6 do   --目标速度 反馈速度 输出电流 输出电压 母线电压 输出转矩
               packet['invt_m_'..invertstate[i] ] = bit.lshift(getnumber(150+(i-1)*2),8)+getnumber(151+(i-1)*2)
@@ -1028,6 +1034,9 @@ function _M.decode(payload)
                 else
                   packet[ 'invt_m_y'..i ] = 1
                 end
+            end
+            for i=15,30 do   --电机信息  变频器信息
+              packet['invt_m_'..invertstate[i] ] = bit.lshift(getnumber(184+(i-15)*2),8)+getnumber(185+(i-15)*2)
             end
             ----副钩变频----68*3=204
             if packet[ 'cranetype' ]>0 then
@@ -1055,6 +1064,9 @@ function _M.decode(payload)
                       packet[ 'invt_v_y'..i ] = 1
                     end
                 end
+                for i=15,30 do   --电机信息  变频器信息
+                  packet['invt_v_'..invertstate[i] ] = bit.lshift(getnumber(252+(i-15)*2),8)+getnumber(253+(i-15)*2)
+                end
             end
             ----2号小车变频---- 68*4=272
             if packet[ 'cranetype' ]>1 then
@@ -1081,6 +1093,9 @@ function _M.decode(payload)
                     else
                       packet[ 'invt_s2_y'..i ] = 1
                     end
+                end
+                for i=15,30 do   --电机信息  变频器信息
+                  packet['invt_s2_'..invertstate[i] ] = bit.lshift(getnumber(320+(i-15)*2),8)+getnumber(321+(i-15)*2)
                 end
             end
      
